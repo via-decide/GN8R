@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="description" content="GN8R — AI command center inside Telegram. File generation, GitHub orchestration, and Gemini AI backend."/>
+<title>GN8R · AI Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#04070f;
+  --bg1:#070c18;
+  --bg2:#0c1424;
+  --bg3:#111a30;
+  --bd:rgba(0,212,255,.1);
+  --bd2:rgba(0,212,255,.2);
+  --tx:#e8f4f8;
+  --tx2:#7a9ab8;
+  --tx3:#3a5572;
+  --cyan:#00d4ff;
+  --cyan2:#7eeeff;
+  --cyan3:rgba(0,212,255,.1);
+  --gold:#f0a500;
+  --gold2:#ffc740;
+  --gold3:rgba(240,165,0,.1);
+  --green:#00e676;
+  --red:#ff4d6d;
+  --purple:#b388ff;
+  --r:12px;
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{
+  font-family:'Space Grotesk',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--tx);
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+a{color:var(--cyan);text-decoration:none}
+a:hover{color:var(--cyan2)}
+img{max-width:100%;display:block}
+button{font-family:inherit;border:none;background:none;cursor:pointer}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--cyan);border-radius:99px}
+::selection{background:rgba(0,212,255,.2);color:var(--tx)}
+
+/* ── NOISE OVERLAY ── */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity:.025;pointer-events:none;z-index:0;
+}
+
+/* ── SCAN LINE ── */
+body::after{
+  content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,212,255,.012) 3px,rgba(0,212,255,.012) 4px);
+  pointer-events:none;z-index:0;
+}
+
+/* ── CANVAS BG ── */
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.4}
+
+/* ── PROGRESS BAR ── */
+#prog{position:fixed;top:0;left:0;height:1.5px;background:linear-gradient(90deg,var(--cyan),var(--gold));z-index:1000;width:0;transition:width .1s}
+
+/* ── NAV ── */
+#nav{
+  position:fixed;top:0;left:0;right:0;z-index:900;
+  padding:1.2rem 2.5rem;
+  display:flex;align-items:center;justify-content:space-between;
+  transition:all .4s;
+}
+#nav.solid{
+  background:rgba(4,7,15,.9);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--bd);
+  padding:.85rem 2.5rem;
+}
+.nav-brand{
+  display:flex;align-items:center;gap:.75rem;
+  font-family:'JetBrains Mono',monospace;
+  font-size:1.1rem;font-weight:700;
+  letter-spacing:.04em;color:var(--tx);
+}
+.nav-brand-icon{
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,var(--cyan3),rgba(0,212,255,.2));
+  border:1px solid var(--bd2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;
+  box-shadow:0 0 20px rgba(0,212,255,.15);
+}
+.nav-brand-name{color:var(--cyan)}
+.nav-brand-sub{font-size:.7rem;color:var(--tx3);letter-spacing:.06em;font-weight:400}
+.nav-links{display:flex;align-items:center;gap:1.5rem}
+.nav-link{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.72rem;font-weight:500;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--tx3);transition:color .2s;
+}
+.nav-link:hover{color:var(--cyan)}
+.nav-cta{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  padding:.52rem 1.3rem;
+  background:linear-gradient(135deg,var(--cyan),rgba(0,180,220,.8));
+  color:#04070f;border-radius:8px;transition:all .22s;
+  box-shadow:0 0 20px rgba(0,212,255,.2);
+}
+.nav-cta:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(0,212,255,.35);color:#04070f}
+
+/* ── HERO ── */
+#hero{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:8rem 2rem 5rem;text-align:center;
+  position:relative;z-index:10;overflow:hidden;
+}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:.6rem;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.65rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--cyan);border:1px solid rgba(0,212,255,.25);
+  background:rgba(0,212,255,.06);padding:.32rem 1rem;border-radius:99px;
+  margin-bottom:2rem;
+  opacity:0;animation:fadeUp .7s .1s forwards;
+}
+.hero-dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,212,255,.4)}50%{box-shadow:0 0 0 8px rgba(0,212,255,0)}}
+
+.hero-h1{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(3.5rem,9vw,9rem);
+  font-weight:800;line-height:.92;letter-spacing:-.04em;
+  margin-bottom:1.5rem;
+  opacity:0;animation:fadeUp .9s .25s forwards;
+}
+.hero-h1 .line1{display:block;color:var(--tx)}
+.hero-h1 .line2{
+  display:block;
+  background:linear-gradient(90deg,var(--cyan),var(--cyan2),var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+
+.hero-sub{
+  max-width:580px;font-size:1.05rem;color:var(--tx2);line-height:1.8;
+  margin:0 auto 2.5rem;
+  opacity:0;animation:fadeUp .7s .45s forwards;
+}
+.hero-sub strong{color:var(--tx)}
+
+.hero-acts{
+  display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;
+  margin-bottom:3.5rem;
+  opacity:0;animation:fadeUp .7s .6s forwards;
+}
+.btn-primary{
+  display:inline-flex;align-items:center;gap:.5rem;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.85rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  padding:.9rem 2rem;background:var(--cyan);color:#04070f;
+  border-radius:10px;transition:all .25s;
+  box-shadow:0 0 30px rgba(0,212,255,.25);
+}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 10px 40px rgba(0,212,255,.4);color:#04070f}
+.btn-secondary{
+  display:inline-flex;align-items:center;gap:.5rem;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.85rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;
+  padding:.9rem 2rem;background:rgba(255,255,255,.04);color:var(--tx2);
+  border:1px solid var(--bd2);border-radius:10px;transition:all .25s;
+}
+.btn-secondary:hover{transform:translateY(-3px);background:rgba(0,212,255,.06);border-color:var(--cyan);color:var(--cyan)}
+
+/* ── TERMINAL PREVIEW ── */
+.terminal{
+  width:100%;max-width:700px;
+  background:var(--bg1);border:1px solid var(--bd2);
+  border-radius:16px;overflow:hidden;
+  box-shadow:0 40px 100px rgba(0,0,0,.7),0 0 0 1px rgba(0,212,255,.05),inset 0 0 80px rgba(0,212,255,.02);
+  opacity:0;animation:fadeUp .9s .8s forwards;
+  text-align:left;
+}
+.term-hd{
+  display:flex;align-items:center;gap:.5rem;
+  padding:.75rem 1.1rem;background:rgba(255,255,255,.03);
+  border-bottom:1px solid var(--bd);
+}
+.term-dot{width:10px;height:10px;border-radius:50%}
+.term-dot:nth-child(1){background:#ff5f57}
+.term-dot:nth-child(2){background:#ffbd2e}
+.term-dot:nth-child(3){background:#28ca41}
+.term-title{
+  font-family:'JetBrains Mono',monospace;font-size:.68rem;
+  color:var(--tx3);margin-left:auto;letter-spacing:.06em;
+}
+.term-body{padding:1.25rem 1.5rem;font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:2}
+.term-line{display:flex;align-items:flex-start;gap:.75rem}
+.term-prompt{color:var(--cyan);flex-shrink:0;user-select:none}
+.term-cmd{color:var(--tx)}
+.term-output{color:var(--tx2);padding-left:1.4rem}
+.term-output.green{color:var(--green)}
+.term-output.gold{color:var(--gold2)}
+.term-output.cyan{color:var(--cyan2)}
+.term-cursor{
+  display:inline-block;width:9px;height:16px;
+  background:var(--cyan);vertical-align:middle;
+  animation:blink .9s step-end infinite;margin-left:2px;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ── SECTIONS ── */
+section{position:relative;z-index:10}
+.container{max-width:1200px;margin:0 auto;padding:0 2.5rem}
+.section-pad{padding:6rem 0}
+.border-top{border-top:1px solid var(--bd)}
+
+/* ── SECTION HEADER ── */
+.section-eye{
+  display:inline-flex;align-items:center;gap:.5rem;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--cyan);margin-bottom:.9rem;
+}
+.section-eye::before{content:'//';opacity:.5;margin-right:.2rem}
+.section-h2{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(2rem,4.5vw,3.8rem);
+  font-weight:700;line-height:1.0;letter-spacing:-.03em;
+  margin-bottom:.75rem;color:var(--tx);
+}
+.section-h2 em{font-style:normal;color:var(--cyan)}
+.section-sub{font-size:.95rem;color:var(--tx2);line-height:1.75;max-width:580px}
+
+/* ── POWER STRIP (stats bar) ── */
+#power-strip{
+  border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);
+  background:var(--bg1);padding:1.1rem 0;position:relative;z-index:10;
+}
+.strip-inner{
+  max-width:1200px;margin:0 auto;padding:0 2.5rem;
+  display:flex;align-items:center;gap:0;
+  overflow-x:auto;scrollbar-width:none;
+}
+.strip-inner::-webkit-scrollbar{display:none}
+.strip-item{
+  display:flex;align-items:center;gap:.75rem;
+  padding:0 2rem;border-right:1px solid var(--bd);
+  flex-shrink:0;
+}
+.strip-item:first-child{padding-left:0}
+.strip-item:last-child{border-right:none}
+.strip-num{
+  font-family:'JetBrains Mono',monospace;
+  font-size:1.4rem;font-weight:700;color:var(--cyan);line-height:1;
+}
+.strip-lbl{font-size:.72rem;color:var(--tx3);line-height:1.3}
+.strip-lbl strong{display:block;color:var(--tx2);font-size:.78rem}
+
+/* ── COMMAND GRID ── */
+.cmd-categories{display:flex;flex-direction:column;gap:2.5rem}
+.cmd-cat{background:var(--bg1);border:1px solid var(--bd);border-radius:16px;overflow:hidden}
+.cmd-cat-hd{
+  display:flex;align-items:center;gap:.75rem;
+  padding:1rem 1.5rem;background:rgba(255,255,255,.025);
+  border-bottom:1px solid var(--bd);
+}
+.cmd-cat-icon{font-size:1.1rem}
+.cmd-cat-name{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.8rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--tx);
+}
+.cmd-cat-badge{
+  font-size:.58rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  padding:.2rem .6rem;border-radius:99px;margin-left:auto;
+}
+.cmd-cat-badge.all{background:rgba(0,212,255,.12);color:var(--cyan);border:1px solid rgba(0,212,255,.2)}
+.cmd-cat-badge.gh{background:rgba(240,165,0,.1);color:var(--gold2);border:1px solid rgba(240,165,0,.2)}
+.cmd-cat-badge.eng{background:rgba(179,136,255,.1);color:var(--purple);border:1px solid rgba(179,136,255,.2)}
+.cmd-cat-badge.ops{background:rgba(0,230,118,.1);color:var(--green);border:1px solid rgba(0,230,118,.2)}
+.cmd-table{width:100%;border-collapse:collapse}
+.cmd-table tr{border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s}
+.cmd-table tr:last-child{border-bottom:none}
+.cmd-table tr:hover{background:rgba(0,212,255,.03)}
+.cmd-table td{padding:.85rem 1.5rem;vertical-align:top}
+.cmd-table td:first-child{width:42%;padding-right:.75rem}
+.cmd-code{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.78rem;font-weight:500;color:var(--cyan2);
+  background:rgba(0,212,255,.07);padding:.2rem .55rem;border-radius:5px;
+  word-break:break-all;
+}
+.cmd-desc{font-size:.82rem;color:var(--tx2);line-height:1.5}
+
+/* ── ARCHITECTURE ── */
+.arch-wrap{
+  background:var(--bg1);border:1px solid var(--bd);border-radius:16px;
+  padding:2rem;font-family:'JetBrains Mono',monospace;font-size:.79rem;
+  overflow-x:auto;
+}
+.arch-pre{
+  color:var(--tx2);line-height:1.9;white-space:pre;
+  font-size:.78rem;
+}
+.arch-pre .hl{color:var(--cyan)}
+.arch-pre .hl2{color:var(--gold2)}
+.arch-pre .hl3{color:var(--green)}
+.arch-pre .hl4{color:var(--purple)}
+.arch-pre .dim{color:var(--tx3)}
+
+/* ── FEATURES GRID ── */
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+.feat-card{
+  background:var(--bg1);border:1px solid var(--bd);border-radius:14px;
+  padding:1.5rem;position:relative;overflow:hidden;
+  transition:transform .3s,border-color .3s,box-shadow .3s;
+}
+.feat-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+  opacity:0;transition:opacity .3s;
+}
+.feat-card:hover{transform:translateY(-4px);border-color:var(--bd2);box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.feat-card:hover::before{opacity:1}
+.feat-icon{
+  width:44px;height:44px;border-radius:12px;
+  background:var(--cyan3);border:1px solid rgba(0,212,255,.15);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;margin-bottom:1rem;
+}
+.feat-name{
+  font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;
+  color:var(--tx);margin-bottom:.4rem;
+}
+.feat-desc{font-size:.8rem;color:var(--tx3);line-height:1.65}
+
+/* ── SETUP ── */
+.setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:start}
+.setup-info .section-sub{margin-bottom:1.8rem}
+.env-block{
+  background:var(--bg1);border:1px solid var(--bd);border-radius:12px;overflow:hidden;margin-bottom:1rem;
+}
+.env-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.7rem 1.1rem;background:rgba(255,255,255,.025);border-bottom:1px solid var(--bd);
+}
+.env-hd-label{
+  font-family:'JetBrains Mono',monospace;font-size:.68rem;
+  font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);
+}
+.env-hd-badge{
+  font-size:.58rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  padding:.18rem .55rem;border-radius:99px;
+}
+.env-hd-badge.req{background:rgba(255,77,109,.1);color:var(--red);border:1px solid rgba(255,77,109,.2)}
+.env-hd-badge.opt{background:rgba(0,230,118,.1);color:var(--green);border:1px solid rgba(0,230,118,.2)}
+.env-body{padding:1rem 1.1rem;font-family:'JetBrains Mono',monospace;font-size:.77rem;line-height:1.9}
+.env-row{display:flex;flex-direction:column;gap:.1rem;margin-bottom:.4rem}
+.env-row:last-child{margin-bottom:0}
+.env-key{color:var(--gold2)}
+.env-val{color:var(--tx2);padding-left:.75rem;opacity:.6;font-size:.72rem}
+.env-comment{color:var(--tx3);font-size:.7rem;padding-left:.5rem}
+
+.code-block{
+  background:var(--bg1);border:1px solid var(--bd);border-radius:12px;overflow:hidden;
+}
+.code-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.65rem 1.1rem;background:rgba(255,255,255,.025);border-bottom:1px solid var(--bd);
+}
+.code-lang{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase}
+.code-body{padding:1.1rem 1.25rem;font-family:'JetBrains Mono',monospace;font-size:.8rem;line-height:1.85;color:var(--tx2)}
+.code-body .kw{color:var(--cyan)}
+.code-body .str{color:var(--green)}
+.code-body .cmt{color:var(--tx3);font-style:italic}
+.code-body .cmd{color:var(--gold2)}
+
+/* ── ANTIGRAVITY SECTION ── */
+.ag-wrap{
+  background:linear-gradient(135deg,rgba(0,212,255,.06),rgba(179,136,255,.04));
+  border:1px solid rgba(0,212,255,.15);border-radius:20px;
+  padding:2.5rem;display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center;
+}
+.ag-l .section-sub{margin-bottom:1.5rem}
+.ag-specs{display:flex;flex-direction:column;gap:.65rem}
+.ag-spec{
+  display:flex;align-items:center;gap:.75rem;
+  background:rgba(255,255,255,.03);border:1px solid var(--bd);border-radius:9px;
+  padding:.7rem 1rem;
+}
+.ag-spec-key{
+  font-family:'JetBrains Mono',monospace;font-size:.7rem;
+  color:var(--tx3);letter-spacing:.05em;text-transform:uppercase;width:80px;flex-shrink:0;
+}
+.ag-spec-val{font-family:'JetBrains Mono',monospace;font-size:.8rem;font-weight:600;color:var(--cyan)}
+.ag-model-card{
+  background:var(--bg1);border:1px solid rgba(179,136,255,.25);border-radius:16px;padding:1.75rem;
+  text-align:center;
+  box-shadow:0 0 60px rgba(179,136,255,.05),inset 0 0 40px rgba(0,212,255,.02);
+}
+.ag-model-icon{font-size:3rem;margin-bottom:1rem;filter:drop-shadow(0 0 20px rgba(179,136,255,.4))}
+.ag-model-name{
+  font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:700;
+  color:var(--tx);margin-bottom:.3rem;
+}
+.ag-model-id{
+  font-family:'JetBrains Mono',monospace;font-size:.7rem;
+  color:var(--purple);background:rgba(179,136,255,.08);
+  padding:.25rem .7rem;border-radius:6px;display:inline-block;margin-bottom:1.1rem;
+}
+.ag-model-chips{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center}
+.ag-chip{
+  font-size:.65rem;font-weight:600;letter-spacing:.04em;
+  padding:.22rem .65rem;border-radius:99px;
+  background:rgba(0,212,255,.07);color:var(--cyan2);border:1px solid rgba(0,212,255,.15);
+}
+
+/* ── KEY FEATURES TABLE ── */
+.kf-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.kf-table thead tr{border-bottom:2px solid var(--bd2)}
+.kf-table th{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.67rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--tx3);padding:.65rem 1rem;text-align:left;
+}
+.kf-table tbody tr{border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s}
+.kf-table tbody tr:last-child{border-bottom:none}
+.kf-table tbody tr:hover{background:rgba(0,212,255,.025)}
+.kf-table td{padding:.75rem 1rem;color:var(--tx2)}
+.kf-table td:first-child{color:var(--tx);font-weight:500}
+.kf-badge{
+  display:inline-flex;font-size:.58rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  padding:.18rem .55rem;border-radius:99px;
+}
+.kf-badge.core{background:rgba(0,212,255,.1);color:var(--cyan);border:1px solid rgba(0,212,255,.18)}
+.kf-badge.new{background:rgba(0,230,118,.1);color:var(--green);border:1px solid rgba(0,230,118,.18)}
+.kf-badge.simba{background:rgba(240,165,0,.1);color:var(--gold2);border:1px solid rgba(240,165,0,.18)}
+
+/* ── FOOTER ── */
+#footer{
+  padding:4rem 2.5rem;
+  border-top:1px solid var(--bd);
+  text-align:center;position:relative;z-index:10;
+  background:var(--bg1);
+}
+#footer::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 80% at 50% 0%,rgba(0,212,255,.05),transparent 65%);
+  pointer-events:none;
+}
+.footer-inner{position:relative;max-width:800px;margin:0 auto}
+.footer-brand{
+  font-family:'Syne',sans-serif;font-size:2.5rem;font-weight:800;
+  letter-spacing:-.04em;color:var(--tx);margin-bottom:.5rem;
+}
+.footer-brand span{color:var(--cyan)}
+.footer-tagline{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--tx3);letter-spacing:.1em;margin-bottom:2rem}
+.footer-acts{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;margin-bottom:2.5rem}
+.footer-links{
+  display:flex;gap:2rem;justify-content:center;flex-wrap:wrap;
+  font-size:.78rem;color:var(--tx3);padding-top:1.5rem;
+  border-top:1px solid var(--bd);
+}
+.footer-links a{color:var(--tx3);transition:color .2s}
+.footer-links a:hover{color:var(--cyan)}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.reveal{opacity:0;transform:translateY(40px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
+.reveal.vis{opacity:1;transform:translateY(0)}
+.reveal:nth-child(2){transition-delay:.08s}
+.reveal:nth-child(3){transition-delay:.16s}
+.reveal:nth-child(4){transition-delay:.24s}
+.reveal:nth-child(5){transition-delay:.32s}
+.reveal:nth-child(6){transition-delay:.4s}
+
+/* ── RESPONSIVE ── */
+@media(max-width:960px){
+  .features-grid{grid-template-columns:1fr 1fr}
+  .setup-grid{grid-template-columns:1fr}
+  .ag-wrap{grid-template-columns:1fr}
+  .nav-links{display:none}
+}
+@media(max-width:640px){
+  #nav{padding:.75rem 1rem}
+  #nav.solid{padding:.65rem 1rem}
+  .hero-h1{font-size:clamp(2.8rem,12vw,4rem)}
+  .container{padding:0 1rem}
+  .section-pad{padding:4rem 0}
+  .features-grid{grid-template-columns:1fr}
+  .cmd-table td:first-child{width:50%}
+  .cmd-code{font-size:.7rem}
+  .footer-acts{flex-direction:column;align-items:center}
+  .strip-item{padding:0 1.2rem}
+  .ag-model-chips{gap:.4rem}
+  #footer{padding:3rem 1rem}
+}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div id="prog"></div>
+
+<nav id="nav">
+  <div class="nav-brand">
+    <div class="nav-brand-icon">⚡</div>
+    <div>
+      <div class="nav-brand-name">GN8R</div>
+      <div class="nav-brand-sub">AI Command Center</div>
+    </div>
+  </div>
+  <div class="nav-links">
+    <a class="nav-link" href="#commands">Commands</a>
+    <a class="nav-link" href="#architecture">Architecture</a>
+    <a class="nav-link" href="#features">Features</a>
+    <a class="nav-link" href="#setup">Setup</a>
+    <a class="nav-link" href="#antigravity">Antigravity</a>
+  </div>
+  <a class="nav-cta" href="https://t.me/GN8RBot" target="_blank" rel="noopener">✈ Open Bot</a>
+</nav>
+
+<section id="hero">
+  <div class="hero-eyebrow"><div class="hero-dot"></div>Powered by Antigravity · Gemini AI</div>
+  <h1 class="hero-h1">
+    <span class="line1">Decide Engine</span>
+    <span class="line2">Bot · GN8R</span>
+  </h1>
+  <p class="hero-sub">
+    Your <strong>AI command center</strong>, inside Telegram.
+    File generation for everyone. GitHub repo orchestration for builders.
+    Antigravity edition.
+  </p>
+  <div class="hero-acts">
+    <a class="btn-primary" href="https://t.me/GN8RBot" target="_blank" rel="noopener">✈ Launch on Telegram</a>
+    <a class="btn-secondary" href="#commands">// View Commands</a>
+  </div>
+
+  <div class="terminal">
+    <div class="term-hd">
+      <div class="term-dot"></div>
+      <div class="term-dot"></div>
+      <div class="term-dot"></div>
+      <div class="term-title">@GN8RBot · terminal session</div>
+    </div>
+    <div class="term-body">
+      <div class="term-line">
+        <span class="term-prompt">$</span>
+        <span class="term-cmd">/start</span>
+      </div>
+      <div class="term-output green">✅ GN8R ready · Engine: Antigravity (Gemini 2.5 Pro)</div>
+      <br/>
+      <div class="term-line">
+        <span class="term-prompt">$</span>
+        <span class="term-cmd">/task create a landing page for FlowTrack SaaS</span>
+      </div>
+      <div class="term-output cyan">⚡ Planning task…</div>
+      <div class="term-output gold">✨ Generating with Gemini 2.5 Pro…</div>
+      <div class="term-output green">📎 flowtrack-landing.html (8.4 KB) — sent!</div>
+      <br/>
+      <div class="term-line">
+        <span class="term-prompt">$</span>
+        <span class="term-cmd">/improve via-decide/decide.engine-tools</span>
+      </div>
+      <div class="term-output cyan">🔍 Auditing repo…</div>
+      <div class="term-output gold">📋 Generating prompt batch…</div>
+      <div class="term-output green">🚀 simba/improve-tools-2025 pushed · PR #42 opened</div>
+      <br/>
+      <div class="term-line">
+        <span class="term-prompt">$</span>
+        <span class="term-cmd"><span class="term-cursor"></span></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="power-strip">
+  <div class="strip-inner">
+    <div class="strip-item">
+      <div class="strip-num">30+</div>
+      <div class="strip-lbl"><strong>Commands</strong>across all modes</div>
+    </div>
+    <div class="strip-item">
+      <div class="strip-num">2</div>
+      <div class="strip-lbl"><strong>Pipelines</strong>user + GitHub</div>
+    </div>
+    <div class="strip-item">
+      <div class="strip-num">8K</div>
+      <div class="strip-lbl"><strong>Max tokens</strong>per generation</div>
+    </div>
+    <div class="strip-item">
+      <div class="strip-num">∞</div>
+      <div class="strip-lbl"><strong>File types</strong>HTML, .py, .md, .json…</div>
+    </div>
+    <div class="strip-item">
+      <div class="strip-num">v2</div>
+      <div class="strip-lbl"><strong>Simba</strong>engine version</div>
+    </div>
+  </div>
+</div>
+
+<!-- COMMANDS -->
+<section id="commands" class="border-top section-pad">
+  <div class="container">
+    <div class="section-eye">commands</div>
+    <h2 class="section-h2">Every command,<br><em>explained.</em></h2>
+    <p class="section-sub" style="margin-bottom:3rem">Four categories of commands. File generation works for all users. GitHub orchestration requires a GITHUB_TOKEN.</p>
+
+    <div class="cmd-categories">
+
+      <div class="cmd-cat reveal">
+        <div class="cmd-cat-hd">
+          <span class="cmd-cat-icon">📄</span>
+          <span class="cmd-cat-name">File Generation</span>
+          <span class="cmd-cat-badge all">All Users</span>
+        </div>
+        <table class="cmd-table">
+          <tbody>
+            <tr><td><code class="cmd-code">/task create a landing page for FlowTrack</code></td><td class="cmd-desc">Generates an HTML file and sends it directly to your chat</td></tr>
+            <tr><td><code class="cmd-code">/task generate a markdown resume template</code></td><td class="cmd-desc">Returns a .md resume file with structured sections</td></tr>
+            <tr><td><code class="cmd-code">/task write a Python CSV parser</code></td><td class="cmd-desc">Returns a runnable .py script</td></tr>
+            <tr><td><code class="cmd-code">/task create a REST API schema for a todo app</code></td><td class="cmd-desc">Returns a .json OpenAPI schema</td></tr>
+            <tr><td><code class="cmd-code">/task build a color palette generator</code></td><td class="cmd-desc">Returns a self-contained .html color tool</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="cmd-cat reveal">
+        <div class="cmd-cat-hd">
+          <span class="cmd-cat-icon">🐙</span>
+          <span class="cmd-cat-name">GitHub Orchestration</span>
+          <span class="cmd-cat-badge gh">Requires GITHUB_TOKEN</span>
+        </div>
+        <table class="cmd-table">
+          <tbody>
+            <tr><td><code class="cmd-code">/repos</code></td><td class="cmd-desc">List all repositories for the configured GitHub owner</td></tr>
+            <tr><td><code class="cmd-code">/analyze owner/repo</code></td><td class="cmd-desc">Inspect repo metadata, structure, and quality signals</td></tr>
+            <tr><td><code class="cmd-code">/improve owner/repo</code></td><td class="cmd-desc">Full Simba pipeline: audit → generate → push branch → open PR</td></tr>
+            <tr><td><code class="cmd-code">/task repo: owner/repo<br/>mode: codex<br/>task: what to do</code></td><td class="cmd-desc">Structured YAML-style task targeting a specific repo</td></tr>
+            <tr><td><code class="cmd-code">/resume</code></td><td class="cmd-desc">Re-run the last failed task from its checkpoint</td></tr>
+            <tr><td><code class="cmd-code">/branches owner/repo</code></td><td class="cmd-desc">List all simba/* branches in the repo</td></tr>
+            <tr><td><code class="cmd-code">/cleanup owner/repo</code></td><td class="cmd-desc">Delete stale simba/* branches to keep repo clean</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="cmd-cat reveal">
+        <div class="cmd-cat-hd">
+          <span class="cmd-cat-icon">⚙️</span>
+          <span class="cmd-cat-name">Engine-Tools Integration</span>
+          <span class="cmd-cat-badge eng">Advanced</span>
+        </div>
+        <table class="cmd-table">
+          <tbody>
+            <tr><td><code class="cmd-code">/registry</code></td><td class="cmd-desc">Scan and list live tools from decide.engine-tools</td></tr>
+            <tr><td><code class="cmd-code">/gaps [category]</code></td><td class="cmd-desc">Show tools missing from the live catalog vs the spec</td></tr>
+            <tr><td><code class="cmd-code">/catalog</code></td><td class="cmd-desc">Show the full local tool catalog with statuses</td></tr>
+            <tr><td><code class="cmd-code">/generate [category]</code></td><td class="cmd-desc">Generate an engine-tool task list for a category</td></tr>
+            <tr><td><code class="cmd-code">/queue</code></td><td class="cmd-desc">Show current task queue and position</td></tr>
+            <tr><td><code class="cmd-code">/queue clear</code></td><td class="cmd-desc">Reset the task queue</td></tr>
+            <tr><td><code class="cmd-code">/loop start [dry|live]</code></td><td class="cmd-desc">Start continuous execution loop in dry-run or live mode</td></tr>
+            <tr><td><code class="cmd-code">/loop stop</code></td><td class="cmd-desc">Gracefully stop the loop after the current task finishes</td></tr>
+            <tr><td><code class="cmd-code">/loop status</code></td><td class="cmd-desc">Show current loop state and last completed task</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="cmd-cat reveal">
+        <div class="cmd-cat-hd">
+          <span class="cmd-cat-icon">📊</span>
+          <span class="cmd-cat-name">Standard Ops</span>
+          <span class="cmd-cat-badge ops">Always Available</span>
+        </div>
+        <table class="cmd-table">
+          <tbody>
+            <tr><td><code class="cmd-code">/status</code></td><td class="cmd-desc">Show current task status and progress</td></tr>
+            <tr><td><code class="cmd-code">/history</code></td><td class="cmd-desc">View recent task history with outcomes</td></tr>
+            <tr><td><code class="cmd-code">/logs [n]</code></td><td class="cmd-desc">Show last n log entries for debugging</td></tr>
+            <tr><td><code class="cmd-code">/cancel</code></td><td class="cmd-desc">Cancel the currently running task</td></tr>
+            <tr><td><code class="cmd-code">/help</code></td><td class="cmd-desc">Show all available commands with descriptions</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section id="architecture" class="border-top section-pad">
+  <div class="container">
+    <div class="section-eye">architecture</div>
+    <h2 class="section-h2">How it <em>works.</em></h2>
+    <p class="section-sub" style="margin-bottom:2.5rem">Polling-based, stateful, dual-pipeline. Simba v2 engine under the hood.</p>
+    <div class="arch-wrap reveal">
+      <pre class="arch-pre">
+<span class="hl">Telegram (polling)</span>
+    │
+    ▼
+<span class="hl2">telegram-bot.js</span>
+  <span class="dim">- webhook drain on startup</span>
+  <span class="dim">- 409 conflict auto-retry (up to 60s)</span>
+  <span class="dim">- message + callback_query routing</span>
+    │
+    ▼
+<span class="hl2">command-router.js</span>
+  <span class="dim">- admin whitelist check</span>
+  <span class="dim">- routes all commands</span>
+    │
+    ├── <span class="hl">/task</span> (plain description)
+    │      ▼
+    │   <span class="hl2">execution-pipeline.js</span> <span class="dim">:: runUserPipeline()</span>
+    │     <span class="hl3">PLAN → GENERATE (Antigravity/Gemini) → ARTIFACT → send file</span>
+    │
+    ├── <span class="hl">/improve</span>, <span class="hl">/task</span> (with repo:)
+    │      ▼
+    │   <span class="hl2">execution-pipeline.js</span> <span class="dim">:: runGitHubPipeline()</span>
+    │     <span class="hl3">PLAN → AUDIT → GENERATE → ARTIFACTS → PUSH → PR</span>
+    │
+    ├── <span class="hl">/loop start</span>
+    │      ▼
+    │   <span class="hl2">task-loop.js</span> <span class="dim">:: startLoop()</span>
+    │     <span class="dim">continuous: generateNextTask → runGitHubPipeline → repeat</span>
+    │
+    └── <span class="hl">/registry</span>, <span class="hl">/gaps</span>, <span class="hl">/generate</span>
+           ▼
+        <span class="hl2">engine-bridge.js</span> + <span class="hl2">task-generator.js</span>
+          <span class="dim">- fetches live tool manifest</span>
+          <span class="dim">- discovers missing tools vs catalog</span>
+          <span class="dim">- builds engine-aware task descriptions</span>
+
+<span class="hl4">state-engine.js</span>    <span class="dim">— file-based state, write lock, corrupt recovery</span>
+<span class="hl4">github.js</span>          <span class="dim">— GitHub REST API (repos, branches, commits, PRs)</span>
+<span class="hl4">templates.js</span>       <span class="dim">— Codex prompt + repair prompt builders</span>
+<span class="hl4">artifacts.js</span>       <span class="dim">— Disk artifact writer + changes.patch generator</span>
+<span class="hl4">file-exporter.js</span>   <span class="dim">— Telegram sendMessage (split) + sendDocument</span>
+<span class="hl4">task-parser.js</span>     <span class="dim">— YAML/JSON/inline task parser + sanitization</span>
+</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ANTIGRAVITY -->
+<section id="antigravity" class="border-top section-pad">
+  <div class="container">
+    <div class="section-eye">AI backend</div>
+    <h2 class="section-h2">Antigravity<br><em>Integration.</em></h2>
+    <p class="section-sub" style="margin-bottom:2.5rem">This bot runs on Antigravity — an abstraction over Gemini's Generative Language API with structured prompting and high token limits.</p>
+    <div class="ag-wrap reveal">
+      <div class="ag-l">
+        <div class="ag-specs">
+          <div class="ag-spec">
+            <span class="ag-spec-key">Model</span>
+            <span class="ag-spec-val">gemini-2.5-pro-preview-05-06</span>
+          </div>
+          <div class="ag-spec">
+            <span class="ag-spec-key">API</span>
+            <span class="ag-spec-val">generativelanguage.googleapis.com/v1beta</span>
+          </div>
+          <div class="ag-spec">
+            <span class="ag-spec-key">Max tokens</span>
+            <span class="ag-spec-val">8192 (configurable via env)</span>
+          </div>
+          <div class="ag-spec">
+            <span class="ag-spec-key">System</span>
+            <span class="ag-spec-val">system_instruction field</span>
+          </div>
+          <div class="ag-spec">
+            <span class="ag-spec-key">Used for</span>
+            <span class="ag-spec-val">Planning · Generation · Code</span>
+          </div>
+          <div class="ag-spec">
+            <span class="ag-spec-key">Override</span>
+            <span class="ag-spec-val">GEMINI_MODEL env var</span>
+          </div>
+        </div>
+      </div>
+      <div class="ag-model-card">
+        <div class="ag-model-icon">✨</div>
+        <div class="ag-model-name">Antigravity</div>
+        <div class="ag-model-id">gemini-2.5-pro-preview-05-06</div>
+        <div class="ag-model-chips">
+          <span class="ag-chip">Task Planning</span>
+          <span class="ag-chip">File Generation</span>
+          <span class="ag-chip">Code Generation</span>
+          <span class="ag-chip">Structured Prompting</span>
+          <span class="ag-chip">8192 tokens</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SETUP -->
+<section id="setup" class="border-top section-pad">
+  <div class="container">
+    <div class="section-eye">setup</div>
+    <h2 class="section-h2">Get running<br><em>in minutes.</em></h2>
+    <div class="setup-grid" style="margin-top:2.5rem">
+      <div class="setup-info">
+        <p class="section-sub">Clone, install, configure two env vars, and start. GitHub features are opt-in.</p>
+        <div class="code-block reveal" style="margin-top:1.5rem">
+          <div class="code-hd"><span class="code-lang">bash · quick start</span></div>
+          <div class="code-body">
+            <span class="cmt"># Clone and install</span><br/>
+            <span class="kw">git</span> clone &lt;repo&gt;<br/>
+            <span class="kw">cd</span> decide-engine-bot<br/>
+            <span class="kw">npm</span> install<br/>
+            <span class="kw">cp</span> .env.example .env<br/><br/>
+            <span class="cmt"># Fill in .env then start</span><br/>
+            <span class="kw">npm</span> start<br/><br/>
+            <span class="cmt"># Run tests (no Telegram needed)</span><br/>
+            <span class="kw">npm</span> run test:flow
+          </div>
+        </div>
+      </div>
+      <div class="setup-envs">
+        <div class="env-block reveal">
+          <div class="env-hd">
+            <span class="env-hd-label">Minimum .env</span>
+            <span class="env-hd-badge req">Required</span>
+          </div>
+          <div class="env-body">
+            <div class="env-row">
+              <span class="env-key">TELEGRAM_BOT_TOKEN</span>
+              <span class="env-val">your_token_from_botfather</span>
+            </div>
+            <div class="env-row">
+              <span class="env-key">GEMINI_API_KEY</span>
+              <span class="env-val">your_gemini_api_key</span>
+            </div>
+          </div>
+        </div>
+        <div class="env-block reveal">
+          <div class="env-hd">
+            <span class="env-hd-label">GitHub Features .env</span>
+            <span class="env-hd-badge opt">Optional</span>
+          </div>
+          <div class="env-body">
+            <div class="env-row">
+              <span class="env-key">GITHUB_TOKEN</span>
+              <span class="env-val">ghp_your_token</span>
+            </div>
+            <div class="env-row">
+              <span class="env-key">GITHUB_OWNER</span>
+              <span class="env-val">your_github_username</span>
+            </div>
+            <div class="env-row">
+              <span class="env-key">SIMBA_ALLOW_LIVE_PUSH</span>
+              <span class="env-val">true</span>
+            </div>
+            <div class="env-row">
+              <span class="env-key">SIMBA_ALLOW_LIVE_PR</span>
+              <span class="env-val">true</span>
+            </div>
+            <div class="env-row">
+              <span class="env-key">GEMINI_MODEL</span>
+              <span class="env-val">gemini-2.5-pro-preview-05-06 <span class="env-comment"># optional override</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features" class="border-top section-pad">
+  <div class="container">
+    <div class="section-eye">key features</div>
+    <h2 class="section-h2">What makes<br><em>GN8R different.</em></h2>
+    <p class="section-sub" style="margin-bottom:3rem">Every feature ships from Simba v2 or the new dual-pipeline routing layer.</p>
+
+    <div class="features-grid" style="margin-bottom:3rem">
+      <div class="feat-card reveal">
+        <div class="feat-icon">📎</div>
+        <div class="feat-name">Real File Upload</div>
+        <div class="feat-desc">Uses Telegram's sendDocument API to deliver actual files — not code blocks pasted in chat. HTML, Python, Markdown, JSON, CSV, SQL.</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon">🔀</div>
+        <div class="feat-name">Dual Pipeline Routing</div>
+        <div class="feat-desc">Plain /task descriptions route to the user pipeline. Tasks with repo: field auto-route to the GitHub pipeline. One command, two outcomes.</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon">🔁</div>
+        <div class="feat-name">409 Conflict Auto-Retry</div>
+        <div class="feat-desc">Handles Telegram's polling conflicts gracefully — drains webhooks on startup and retries up to 60 seconds before failing cleanly.</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon">🔒</div>
+        <div class="feat-name">File-Based State + Write Lock</div>
+        <div class="feat-desc">State persists to disk with write locking and corrupt recovery. Tasks survive bot restarts and can be resumed with /resume.</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon">🔁</div>
+        <div class="feat-name">Continuous Task Loop</div>
+        <div class="feat-desc">/loop start runs a continuous execution loop — generates the next task, runs the pipeline, repeats. Dry-run and live modes supported.</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon">🧹</div>
+        <div class="feat-name">Safe JSON + YAML Parsing</div>
+        <div class="feat-desc">safeJsonParse with JSON repair, zero-width character removal via sanitizeTelegram, and full YAML/JSON/inline task parser.</div>
+      </div>
+    </div>
+
+    <div class="arch-wrap reveal">
+      <table class="kf-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Source</th>
+            <th>Tag</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Antigravity (Gemini) AI backend</td><td>Core engine</td><td><span class="kf-badge core">Core</span></td></tr>
+          <tr><td>sendDocument (real file upload)</td><td>New in this release</td><td><span class="kf-badge new">New</span></td></tr>
+          <tr><td>User-facing /task without repo field</td><td>New in this release</td><td><span class="kf-badge new">New</span></td></tr>
+          <tr><td>Dual pipeline routing</td><td>New in this release</td><td><span class="kf-badge new">New</span></td></tr>
+          <tr><td>409 conflict auto-retry</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
+          <tr><td>Webhook drain on startup</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
+          <tr><td>Inline keyboard callbacks (/improve)</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
+          <tr><td>File-based state + write lock</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
+          <tr><td>sanitizeTelegram (zero-width char removal)</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
+          <tr><td>safeJsonParse + JSON repair</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
+          <tr><td>YAML/JSON/inline task parser</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
+          <tr><td>Full GitHub API (branches, commits, PRs)</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
+          <tr><td>changes.patch artifact</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
+          <tr><td>Task loop (/loop start/stop/status)</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
+          <tr><td>Tool catalog + gap discovery</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
+          <tr><td>Admin chat ID whitelist</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer id="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">GN<span>8</span>R</div>
+    <div class="footer-tagline">// AI COMMAND CENTER · ANTIGRAVITY EDITION · MIT LICENSE</div>
+    <div class="footer-acts">
+      <a class="btn-primary" href="https://t.me/GN8RBot" target="_blank" rel="noopener">✈ Open @GN8RBot</a>
+      <a class="btn-secondary" href="https://github.com/via-decide/decide.engine-tools" target="_blank" rel="noopener">🐙 engine-tools</a>
+    </div>
+    <div class="footer-links">
+      <a href="https://t.me/GN8RBot" target="_blank" rel="noopener">Telegram</a>
+      <a href="https://github.com/via-decide" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://viadecide.com" target="_blank" rel="noopener">ViaDecide</a>
+      <span>· Powered by Gemini 2.5 Pro</span>
+      <span>· MIT License</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* CANVAS */
+const canvas=document.getElementById('bg-canvas'),ctx=canvas.getContext('2d');
+let W,H,pts=[];
+function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight}
+resize();window.addEventListener('resize',resize);
+function mkP(){return{x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.2+.3,vx:(Math.random()-.5)*.12,vy:(Math.random()-.5)*.12,o:Math.random()*.35+.08}}
+for(let i=0;i<70;i++)pts.push(mkP());
+function drawBg(){
+  ctx.clearRect(0,0,W,H);
+  /* grid */
+  ctx.strokeStyle='rgba(0,212,255,0.025)';ctx.lineWidth=1;
+  for(let x=0;x<W;x+=80){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+  for(let y=0;y<H;y+=80){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+  /* particles */
+  pts.forEach(p=>{
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.x<0||p.x>W)p.vx*=-1;
+    if(p.y<0||p.y>H)p.vy*=-1;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(0,212,255,${p.o})`;ctx.fill();
+  });
+  /* connections */
+  for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
+    const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);
+    if(d<100){ctx.beginPath();ctx.strokeStyle=`rgba(0,212,255,${.05*(1-d/100)})`;ctx.lineWidth=.5;ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.stroke();}
+  }
+  requestAnimationFrame(drawBg);
+}
+drawBg();
+
+/* SCROLL */
+const nav=document.getElementById('nav'),prog=document.getElementById('prog');
+window.addEventListener('scroll',()=>{
+  const s=window.scrollY,max=document.body.scrollHeight-innerHeight;
+  prog.style.width=(s/max*100)+'%';
+  nav.classList.toggle('solid',s>60);
+},{ passive:true });
+
+/* REVEAL */
+const io=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}});
+},{threshold:0,rootMargin:'0px 0px -60px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+/* mobile fallback */
+if(window.matchMedia('(hover:none),(pointer:coarse)').matches){
+  setTimeout(()=>document.querySelectorAll('.reveal').forEach(el=>el.classList.add('vis')),400);
+}
+</script>
+</body>
+</html>
