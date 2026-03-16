@@ -21,6 +21,7 @@ import { inspectRepository, getBranchSha, createBranch, commitFile, createPullRe
 export const STAGES = ['PLAN', 'AUDIT', 'GENERATE', 'ARTIFACTS', 'PUSH', 'PR', 'COMPLETE'];
 
 const TELEGRAM_ASSISTANT_SYSTEM_PROMPT = 'You are a Telegram bot assistant. Always keep responses concise and under 800 characters when possible. Limit lists to 5 items.';
+const TELEGRAM_ASSISTANT_SYSTEM_PROMPT = 'You are a Telegram bot assistant. Always keep responses under 800 characters and limit lists to 5 items.';
 
 // ── Antigravity (Gemini) API helper ───────────────────────────
 

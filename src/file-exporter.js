@@ -59,6 +59,27 @@ export function makeTelegramAPI(token) {
   return {
     async sendMessage(chatId, text, extra = {}) {
       return sendMessageChunked(chatId, text, extra);
+  return {
+    async sendMessage(chatId, text, extra = {}) {
+      const chunks = chunksForTelegram(text);
+      const results = [];
+      for (const chunk of chunks) {
+        try {
+          results.push(await request('sendMessage', {
+            chat_id: chatId, text: chunk,
+            parse_mode: 'Markdown',
+            disable_web_page_preview: true,
+            ...extra,
+          }));
+        } catch {
+          // fallback: strip markdown
+          results.push(await request('sendMessage', {
+            chat_id: chatId, text: chunk.replace(/[*_`\[\]]/g, ''),
+            disable_web_page_preview: true,
+          }));
+        }
+      }
+      return results;
     },
 
     async sendDocument(chatId, filepath, filename, caption) {
@@ -78,6 +99,16 @@ export function makeTelegramAPI(token) {
 
     async sendPreviewCard(chatId, { text, buttons }) {
       return sendMessageChunked(chatId, text, { reply_markup: { inline_keyboard: buttons } });
+      const chunks = chunksForTelegram(text);
+      const results = [];
+      for (let i = 0; i < chunks.length; i++) {
+        results.push(await request('sendMessage', {
+          chat_id: chatId,
+          text: chunks[i],
+          ...(i === 0 ? { reply_markup: { inline_keyboard: buttons } } : {}),
+        }));
+      }
+      return results;
     },
 
     async answerCallbackQuery(callbackQueryId, text) {
