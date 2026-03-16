@@ -519,6 +519,32 @@ section{position:relative;z-index:10}
   .ag-model-chips{gap:.4rem}
   #footer{padding:3rem 1rem}
 }
+
+/* ── QUICK TRY CHIPS ── */
+.try-label{
+  font-family:'JetBrains Mono',monospace;font-size:.62rem;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--tx3);
+  margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem;
+}
+.try-label::before{content:'//';color:var(--cyan);opacity:.5}
+.try-chips{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:2.5rem}
+.try-chip{
+  display:inline-flex;align-items:center;gap:.5rem;
+  font-family:'JetBrains Mono',monospace;font-size:.74rem;font-weight:500;
+  padding:.42rem .95rem;border-radius:8px;
+  background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.15);
+  color:var(--cyan2);cursor:pointer;transition:all .2s;user-select:none;
+}
+.try-chip:hover{background:rgba(0,212,255,.14);border-color:var(--cyan);color:var(--cyan);transform:translateY(-2px)}
+.try-chip:active{transform:translateY(0) scale(.97)}
+.try-chip .chip-icon{font-size:.8rem;flex-shrink:0}
+.try-chip .chip-copy-flash{
+  font-size:.65rem;color:var(--green);
+  display:none;
+}
+.try-chip.chip-copied .chip-copy-flash{display:inline}
+.try-chip.chip-copied .chip-text{display:none}
+
 </style>
 </head>
 <body>
@@ -575,19 +601,19 @@ section{position:relative;z-index:10}
       <br/>
       <div class="term-line">
         <span class="term-prompt">$</span>
-        <span class="term-cmd">/task create a landing page for FlowTrack SaaS</span>
+        <span class="term-cmd">/task create a schedule for tomorrow</span>
       </div>
       <div class="term-output cyan">⚡ Planning task…</div>
       <div class="term-output gold">✨ Generating with Gemini 2.5 Pro…</div>
-      <div class="term-output green">📎 flowtrack-landing.html (8.4 KB) — sent!</div>
+      <div class="term-output green">📎 schedule-tomorrow.html — sent!</div>
       <br/>
       <div class="term-line">
         <span class="term-prompt">$</span>
-        <span class="term-cmd">/improve via-decide/decide.engine-tools</span>
+        <span class="term-cmd">/task create a schedule for tomorrow morning</span>
       </div>
-      <div class="term-output cyan">🔍 Auditing repo…</div>
-      <div class="term-output gold">📋 Generating prompt batch…</div>
-      <div class="term-output green">🚀 simba/improve-tools-2025 pushed · PR #42 opened</div>
+      <div class="term-output cyan">⚡ Planning task…</div>
+      <div class="term-output gold">✨ Gemini focused on morning block…</div>
+      <div class="term-output green">📎 morning-schedule.html — sent!</div>
       <br/>
       <div class="term-line">
         <span class="term-prompt">$</span>
@@ -629,6 +655,16 @@ section{position:relative;z-index:10}
     <h2 class="section-h2">Every command,<br><em>explained.</em></h2>
     <p class="section-sub" style="margin-bottom:3rem">Four categories of commands. File generation works for all users. GitHub orchestration requires a GITHUB_TOKEN.</p>
 
+    <div class="try-label">Try these now</div>
+    <div class="try-chips">
+      <span class="try-chip" data-try="/task create a schedule for tomorrow"><span class="chip-icon">📅</span><span class="chip-text">/task create a schedule for tomorrow</span><span class="chip-copy-flash">✓ copied!</span></span>
+      <span class="try-chip" data-try="/task create a schedule for tomorrow morning"><span class="chip-icon">🌅</span><span class="chip-text">/task create a schedule for tomorrow morning</span><span class="chip-copy-flash">✓ copied!</span></span>
+      <span class="try-chip" data-try="/task create a weekly workout plan"><span class="chip-icon">💪</span><span class="chip-text">/task create a weekly workout plan</span><span class="chip-copy-flash">✓ copied!</span></span>
+      <span class="try-chip" data-try="/task make a birthday party checklist"><span class="chip-icon">🎂</span><span class="chip-text">/task make a birthday party checklist</span><span class="chip-copy-flash">✓ copied!</span></span>
+      <span class="try-chip" data-try="/task write a Python CSV parser"><span class="chip-icon">🐍</span><span class="chip-text">/task write a Python CSV parser</span><span class="chip-copy-flash">✓ copied!</span></span>
+      <span class="try-chip" data-try="/task build a landing page for my SaaS"><span class="chip-icon">🌐</span><span class="chip-text">/task build a landing page for my SaaS</span><span class="chip-copy-flash">✓ copied!</span></span>
+    </div>
+
     <div class="cmd-categories">
 
       <div class="cmd-cat reveal">
@@ -639,11 +675,11 @@ section{position:relative;z-index:10}
         </div>
         <table class="cmd-table">
           <tbody>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a landing page for FlowTrack</code><button class="copy-btn" data-copy="/task create a landing page for FlowTrack" title="Copy command">⎘</button></div></td><td class="cmd-desc">Generates an HTML file and sends it directly to your chat</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task generate a markdown resume template</code><button class="copy-btn" data-copy="/task generate a markdown resume template" title="Copy command">⎘</button></div></td><td class="cmd-desc">Returns a .md resume file with structured sections</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task write a Python CSV parser</code><button class="copy-btn" data-copy="/task write a Python CSV parser" title="Copy command">⎘</button></div></td><td class="cmd-desc">Returns a runnable .py script</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a REST API schema for a todo app</code><button class="copy-btn" data-copy="/task create a REST API schema for a todo app" title="Copy command">⎘</button></div></td><td class="cmd-desc">Returns a .json OpenAPI schema</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task build a color palette generator</code><button class="copy-btn" data-copy="/task build a color palette generator" title="Copy command">⎘</button></div></td><td class="cmd-desc">Returns a self-contained .html color tool</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a schedule for tomorrow</code><button class="copy-btn" data-copy="/task create a schedule for tomorrow" title="Copy command">⎘</button></div></td><td class="cmd-desc">Returns a clean daily schedule as an HTML file</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a schedule for tomorrow morning</code><button class="copy-btn" data-copy="/task create a schedule for tomorrow morning" title="Copy command">⎘</button></div></td><td class="cmd-desc">Focused morning block planner — time slots, priorities, and breaks</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a weekly workout plan</code><button class="copy-btn" data-copy="/task create a weekly workout plan" title="Copy command">⎘</button></div></td><td class="cmd-desc">Returns a structured .html workout schedule with days and exercises</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task write a Python CSV parser</code><button class="copy-btn" data-copy="/task write a Python CSV parser" title="Copy command">⎘</button></div></td><td class="cmd-desc">Returns a runnable .py script — developer tasks work too</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task build a landing page for FlowTrack</code><button class="copy-btn" data-copy="/task build a landing page for FlowTrack" title="Copy command">⎘</button></div></td><td class="cmd-desc">Returns a complete self-contained .html landing page</td></tr>
           </tbody>
         </table>
       </div>
@@ -1030,6 +1066,25 @@ if(window.matchMedia('(hover:none),(pointer:coarse)').matches){
 </script>
 
 <script>
+
+/* QUICK TRY CHIPS */
+document.querySelectorAll('.try-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const text = chip.dataset.try;
+    if (!text) return;
+    const copy = t => {
+      chip.classList.add('chip-copied');
+      setTimeout(() => chip.classList.remove('chip-copied'), 1800);
+    };
+    navigator.clipboard.writeText(text).then(copy).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta); copy();
+    });
+  });
+});
+
 /* COPY BUTTONS */
 document.addEventListener('click', function(e) {
   const btn = e.target.closest('.copy-btn');
