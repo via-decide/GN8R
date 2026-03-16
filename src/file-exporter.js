@@ -28,6 +28,37 @@ export function makeTelegramAPI(token) {
     return data.result;
   }
 
+
+  async function sendMessageChunked(chatId, text, extra = {}) {
+    const chunks = chunksForTelegram(text);
+    const results = [];
+
+    for (let i = 0; i < chunks.length; i++) {
+      const isFirstChunk = i === 0;
+      const payload = {
+        chat_id: chatId,
+        text: chunks[i],
+        disable_web_page_preview: true,
+        ...(isFirstChunk ? extra : {}),
+      };
+
+      try {
+        results.push(await request('sendMessage', { parse_mode: 'Markdown', ...payload }));
+      } catch {
+        // Fallback: strip markdown if Telegram rejects formatting entities.
+        results.push(await request('sendMessage', {
+          ...payload,
+          text: chunks[i].replace(/[*_`\[\]]/g, ''),
+        }));
+      }
+    }
+
+    return results;
+  }
+
+  return {
+    async sendMessage(chatId, text, extra = {}) {
+      return sendMessageChunked(chatId, text, extra);
   return {
     async sendMessage(chatId, text, extra = {}) {
       const chunks = chunksForTelegram(text);
@@ -67,6 +98,7 @@ export function makeTelegramAPI(token) {
     },
 
     async sendPreviewCard(chatId, { text, buttons }) {
+      return sendMessageChunked(chatId, text, { reply_markup: { inline_keyboard: buttons } });
       const chunks = chunksForTelegram(text);
       const results = [];
       for (let i = 0; i < chunks.length; i++) {
