@@ -443,6 +443,23 @@ section{position:relative;z-index:10}
 .kf-badge.new{background:rgba(0,230,118,.1);color:var(--green);border:1px solid rgba(0,230,118,.18)}
 .kf-badge.simba{background:rgba(240,165,0,.1);color:var(--gold2);border:1px solid rgba(240,165,0,.18)}
 
+/* ── COPY BUTTON ── */
+.cmd-cell{position:relative;display:flex;align-items:flex-start;gap:.6rem}
+.copy-btn{
+  flex-shrink:0;margin-top:1px;
+  width:26px;height:26px;border-radius:6px;
+  background:rgba(0,212,255,.07);border:1px solid rgba(0,212,255,.15);
+  color:var(--tx3);font-size:.75rem;
+  display:inline-flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .2s;
+  opacity:0;pointer-events:none;
+}
+.cmd-table tr:hover .copy-btn{opacity:1;pointer-events:auto}
+.copy-btn:hover{background:rgba(0,212,255,.18);border-color:var(--cyan);color:var(--cyan);transform:scale(1.1)}
+.copy-btn.copied{background:rgba(0,230,118,.15);border-color:var(--green);color:var(--green)}
+/* always show on touch devices */
+@media(hover:none),(pointer:coarse){.copy-btn{opacity:1;pointer-events:auto}}
+
 /* ── FOOTER ── */
 #footer{
   padding:4rem 2.5rem;
@@ -622,11 +639,11 @@ section{position:relative;z-index:10}
         </div>
         <table class="cmd-table">
           <tbody>
-            <tr><td><code class="cmd-code">/task create a landing page for FlowTrack</code></td><td class="cmd-desc">Generates an HTML file and sends it directly to your chat</td></tr>
-            <tr><td><code class="cmd-code">/task generate a markdown resume template</code></td><td class="cmd-desc">Returns a .md resume file with structured sections</td></tr>
-            <tr><td><code class="cmd-code">/task write a Python CSV parser</code></td><td class="cmd-desc">Returns a runnable .py script</td></tr>
-            <tr><td><code class="cmd-code">/task create a REST API schema for a todo app</code></td><td class="cmd-desc">Returns a .json OpenAPI schema</td></tr>
-            <tr><td><code class="cmd-code">/task build a color palette generator</code></td><td class="cmd-desc">Returns a self-contained .html color tool</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a landing page for FlowTrack</code><button class="copy-btn" data-copy="/task create a landing page for FlowTrack" title="Copy command">⎘</button></div></td><td class="cmd-desc">Generates an HTML file and sends it directly to your chat</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task generate a markdown resume template</code><button class="copy-btn" data-copy="/task generate a markdown resume template" title="Copy command">⎘</button></div></td><td class="cmd-desc">Returns a .md resume file with structured sections</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task write a Python CSV parser</code><button class="copy-btn" data-copy="/task write a Python CSV parser" title="Copy command">⎘</button></div></td><td class="cmd-desc">Returns a runnable .py script</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a REST API schema for a todo app</code><button class="copy-btn" data-copy="/task create a REST API schema for a todo app" title="Copy command">⎘</button></div></td><td class="cmd-desc">Returns a .json OpenAPI schema</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task build a color palette generator</code><button class="copy-btn" data-copy="/task build a color palette generator" title="Copy command">⎘</button></div></td><td class="cmd-desc">Returns a self-contained .html color tool</td></tr>
           </tbody>
         </table>
       </div>
@@ -639,13 +656,13 @@ section{position:relative;z-index:10}
         </div>
         <table class="cmd-table">
           <tbody>
-            <tr><td><code class="cmd-code">/repos</code></td><td class="cmd-desc">List all repositories for the configured GitHub owner</td></tr>
-            <tr><td><code class="cmd-code">/analyze owner/repo</code></td><td class="cmd-desc">Inspect repo metadata, structure, and quality signals</td></tr>
-            <tr><td><code class="cmd-code">/improve owner/repo</code></td><td class="cmd-desc">Full Simba pipeline: audit → generate → push branch → open PR</td></tr>
-            <tr><td><code class="cmd-code">/task repo: owner/repo<br/>mode: codex<br/>task: what to do</code></td><td class="cmd-desc">Structured YAML-style task targeting a specific repo</td></tr>
-            <tr><td><code class="cmd-code">/resume</code></td><td class="cmd-desc">Re-run the last failed task from its checkpoint</td></tr>
-            <tr><td><code class="cmd-code">/branches owner/repo</code></td><td class="cmd-desc">List all simba/* branches in the repo</td></tr>
-            <tr><td><code class="cmd-code">/cleanup owner/repo</code></td><td class="cmd-desc">Delete stale simba/* branches to keep repo clean</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/repos</code><button class="copy-btn" data-copy="/repos" title="Copy command">⎘</button></div></td><td class="cmd-desc">List all repositories for the configured GitHub owner</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/analyze owner/repo</code><button class="copy-btn" data-copy="/analyze owner/repo" title="Copy command">⎘</button></div></td><td class="cmd-desc">Inspect repo metadata, structure, and quality signals</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/improve owner/repo</code><button class="copy-btn" data-copy="/improve owner/repo" title="Copy command">⎘</button></div></td><td class="cmd-desc">Full Simba pipeline: audit → generate → push branch → open PR</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task repo: owner/repo<br/>mode: codex<br/>task: what to do</code><button class="copy-btn" data-copy="/task repo: owner/repomode: codextask: what to do" title="Copy command">⎘</button></div></td><td class="cmd-desc">Structured YAML-style task targeting a specific repo</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/resume</code><button class="copy-btn" data-copy="/resume" title="Copy command">⎘</button></div></td><td class="cmd-desc">Re-run the last failed task from its checkpoint</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/branches owner/repo</code><button class="copy-btn" data-copy="/branches owner/repo" title="Copy command">⎘</button></div></td><td class="cmd-desc">List all simba/* branches in the repo</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/cleanup owner/repo</code><button class="copy-btn" data-copy="/cleanup owner/repo" title="Copy command">⎘</button></div></td><td class="cmd-desc">Delete stale simba/* branches to keep repo clean</td></tr>
           </tbody>
         </table>
       </div>
@@ -658,15 +675,15 @@ section{position:relative;z-index:10}
         </div>
         <table class="cmd-table">
           <tbody>
-            <tr><td><code class="cmd-code">/registry</code></td><td class="cmd-desc">Scan and list live tools from decide.engine-tools</td></tr>
-            <tr><td><code class="cmd-code">/gaps [category]</code></td><td class="cmd-desc">Show tools missing from the live catalog vs the spec</td></tr>
-            <tr><td><code class="cmd-code">/catalog</code></td><td class="cmd-desc">Show the full local tool catalog with statuses</td></tr>
-            <tr><td><code class="cmd-code">/generate [category]</code></td><td class="cmd-desc">Generate an engine-tool task list for a category</td></tr>
-            <tr><td><code class="cmd-code">/queue</code></td><td class="cmd-desc">Show current task queue and position</td></tr>
-            <tr><td><code class="cmd-code">/queue clear</code></td><td class="cmd-desc">Reset the task queue</td></tr>
-            <tr><td><code class="cmd-code">/loop start [dry|live]</code></td><td class="cmd-desc">Start continuous execution loop in dry-run or live mode</td></tr>
-            <tr><td><code class="cmd-code">/loop stop</code></td><td class="cmd-desc">Gracefully stop the loop after the current task finishes</td></tr>
-            <tr><td><code class="cmd-code">/loop status</code></td><td class="cmd-desc">Show current loop state and last completed task</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/registry</code><button class="copy-btn" data-copy="/registry" title="Copy command">⎘</button></div></td><td class="cmd-desc">Scan and list live tools from decide.engine-tools</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/gaps [category]</code><button class="copy-btn" data-copy="/gaps [category]" title="Copy command">⎘</button></div></td><td class="cmd-desc">Show tools missing from the live catalog vs the spec</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/catalog</code><button class="copy-btn" data-copy="/catalog" title="Copy command">⎘</button></div></td><td class="cmd-desc">Show the full local tool catalog with statuses</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/generate [category]</code><button class="copy-btn" data-copy="/generate [category]" title="Copy command">⎘</button></div></td><td class="cmd-desc">Generate an engine-tool task list for a category</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/queue</code><button class="copy-btn" data-copy="/queue" title="Copy command">⎘</button></div></td><td class="cmd-desc">Show current task queue and position</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/queue clear</code><button class="copy-btn" data-copy="/queue clear" title="Copy command">⎘</button></div></td><td class="cmd-desc">Reset the task queue</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/loop start [dry|live]</code><button class="copy-btn" data-copy="/loop start [dry|live]" title="Copy command">⎘</button></div></td><td class="cmd-desc">Start continuous execution loop in dry-run or live mode</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/loop stop</code><button class="copy-btn" data-copy="/loop stop" title="Copy command">⎘</button></div></td><td class="cmd-desc">Gracefully stop the loop after the current task finishes</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/loop status</code><button class="copy-btn" data-copy="/loop status" title="Copy command">⎘</button></div></td><td class="cmd-desc">Show current loop state and last completed task</td></tr>
           </tbody>
         </table>
       </div>
@@ -679,11 +696,11 @@ section{position:relative;z-index:10}
         </div>
         <table class="cmd-table">
           <tbody>
-            <tr><td><code class="cmd-code">/status</code></td><td class="cmd-desc">Show current task status and progress</td></tr>
-            <tr><td><code class="cmd-code">/history</code></td><td class="cmd-desc">View recent task history with outcomes</td></tr>
-            <tr><td><code class="cmd-code">/logs [n]</code></td><td class="cmd-desc">Show last n log entries for debugging</td></tr>
-            <tr><td><code class="cmd-code">/cancel</code></td><td class="cmd-desc">Cancel the currently running task</td></tr>
-            <tr><td><code class="cmd-code">/help</code></td><td class="cmd-desc">Show all available commands with descriptions</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/status</code><button class="copy-btn" data-copy="/status" title="Copy command">⎘</button></div></td><td class="cmd-desc">Show current task status and progress</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/history</code><button class="copy-btn" data-copy="/history" title="Copy command">⎘</button></div></td><td class="cmd-desc">View recent task history with outcomes</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/logs [n]</code><button class="copy-btn" data-copy="/logs [n]" title="Copy command">⎘</button></div></td><td class="cmd-desc">Show last n log entries for debugging</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/cancel</code><button class="copy-btn" data-copy="/cancel" title="Copy command">⎘</button></div></td><td class="cmd-desc">Cancel the currently running task</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/help</code><button class="copy-btn" data-copy="/help" title="Copy command">⎘</button></div></td><td class="cmd-desc">Show all available commands with descriptions</td></tr>
           </tbody>
         </table>
       </div>
@@ -949,7 +966,7 @@ section{position:relative;z-index:10}
     <div class="footer-tagline">// AI COMMAND CENTER · ANTIGRAVITY EDITION · MIT LICENSE</div>
     <div class="footer-acts">
       <a class="btn-primary" href="https://t.me/GN8RBot" target="_blank" rel="noopener">✈ Open @GN8RBot</a>
-      <a class="btn-secondary" href="https://github.com/via-decide/decide.engine-tools" target="_blank" rel="noopener">🐙 engine-tools</a>
+      <a class="btn-secondary" href="https://via-decide.github.io/decide.engine-tools/" target="_blank" rel="noopener">⚙️ engine-tools</a>
     </div>
     <div class="footer-links">
       <a href="https://t.me/GN8RBot" target="_blank" rel="noopener">Telegram</a>
@@ -1011,5 +1028,30 @@ if(window.matchMedia('(hover:none),(pointer:coarse)').matches){
   setTimeout(()=>document.querySelectorAll('.reveal').forEach(el=>el.classList.add('vis')),400);
 }
 </script>
+
+<script>
+/* COPY BUTTONS */
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.copy-btn');
+  if (!btn) return;
+  const text = btn.dataset.copy || btn.closest('.cmd-cell')?.querySelector('.cmd-code')?.innerText || '';
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '⎘'; btn.classList.remove('copied'); }, 1800);
+  }).catch(() => {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = '✓'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '⎘'; btn.classList.remove('copied'); }, 1800);
+  });
+});
+</script>
+
 </body>
 </html>
