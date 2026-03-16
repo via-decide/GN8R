@@ -545,6 +545,133 @@ section{position:relative;z-index:10}
 .try-chip.chip-copied .chip-copy-flash{display:inline}
 .try-chip.chip-copied .chip-text{display:none}
 
+
+/* ── WORKS / DOESN'T WORK ── */
+.works-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2.5rem}
+.works-card{background:var(--bg1);border:1px solid var(--bd);border-radius:14px;padding:1.25rem;overflow:hidden}
+.works-card.works-yes{border-color:rgba(0,230,118,.2);background:rgba(0,230,118,.03)}
+.works-card.works-no{border-color:rgba(255,77,109,.2);background:rgba(255,77,109,.03)}
+.works-hd{display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid rgba(255,255,255,.06)}
+.works-icon{font-size:1.1rem}
+.works-title{font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:700;letter-spacing:.05em;color:var(--tx)}
+.works-list{display:flex;flex-direction:column;gap:.55rem}
+.works-row{font-size:.8rem;color:var(--tx2);line-height:1.55;display:flex;align-items:flex-start;gap:.55rem}
+.works-row strong{color:var(--tx)}
+.works-row em{font-style:normal;font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--cyan2);background:rgba(0,212,255,.07);padding:.1rem .4rem;border-radius:4px}
+.works-row.works-fix{background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.12);border-radius:8px;padding:.55rem .7rem;margin-top:.3rem}
+.w-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:.35rem}
+.w-dot.green{background:var(--green)}.w-dot.red{background:var(--red)}.w-dot.cyan{background:var(--cyan)}
+
+/* ════════════════════════════════
+   MOBILE OVERHAUL
+   ════════════════════════════════ */
+@media(max-width:768px){
+  /* Nav */
+  #nav{padding:.7rem 1rem}
+  #nav.solid{padding:.6rem 1rem}
+  .nav-brand-icon{width:30px;height:30px;font-size:.95rem}
+  .nav-brand-name{font-size:.95rem}
+  .nav-brand-sub{display:none}
+  .nav-cta{font-size:.68rem;padding:.42rem 1rem}
+
+  /* Hero */
+  #hero{padding:6.5rem 1.1rem 3.5rem;min-height:auto}
+  .hero-eyebrow{font-size:.58rem;padding:.28rem .75rem}
+  .hero-h1{font-size:clamp(2.6rem,11vw,3.8rem);margin-bottom:1.1rem}
+  .hero-sub{font-size:.88rem;margin-bottom:1.8rem}
+  .hero-acts{gap:.55rem;margin-bottom:2rem}
+  .btn-primary,.btn-secondary{font-size:.75rem;padding:.75rem 1.4rem;border-radius:10px;width:100%;justify-content:center}
+  .hero-acts{flex-direction:column;align-items:stretch;max-width:320px;margin-left:auto;margin-right:auto}
+
+  /* Terminal */
+  .terminal{border-radius:12px}
+  .term-body{padding:.9rem 1rem;font-size:.73rem;line-height:1.85}
+  .term-hd{padding:.6rem .9rem}
+  .term-title{font-size:.6rem}
+
+  /* Power strip */
+  .strip-inner{gap:0;padding:0 1rem}
+  .strip-item{padding:0 1rem}
+  .strip-num{font-size:1.1rem}
+  .strip-lbl{font-size:.62rem}
+  .strip-lbl strong{font-size:.66rem}
+
+  /* Section padding + container */
+  .section-pad{padding:3rem 0}
+  .container{padding:0 1rem}
+  .section-h2{font-size:clamp(1.75rem,8vw,2.4rem)}
+  .section-sub{font-size:.85rem}
+
+  /* Works grid — stack on mobile */
+  .works-grid{grid-template-columns:1fr}
+  .works-row{font-size:.76rem}
+
+  /* Try chips — horizontal scroll */
+  .try-chips{
+    flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;
+    scroll-snap-type:x mandatory;padding-bottom:.5rem;
+    scrollbar-width:none;gap:.45rem;
+  }
+  .try-chips::-webkit-scrollbar{display:none}
+  .try-chip{scroll-snap-align:start;flex-shrink:0;font-size:.7rem;padding:.42rem .85rem;min-height:38px}
+
+  /* Command tables — make readable on small screens */
+  .cmd-cat-hd{padding:.85rem 1rem}
+  .cmd-cat-name{font-size:.72rem}
+  .cmd-table td{padding:.7rem .9rem}
+  .cmd-table td:first-child{width:auto;display:block;padding-bottom:.2rem}
+  .cmd-table td:last-child{display:block;padding-top:0;border-top:none}
+  .cmd-table tr{display:block;padding:.65rem 0;border-bottom:1px solid rgba(255,255,255,.04)}
+  .cmd-table tbody{display:block}
+  .cmd-table thead{display:none}
+  .cmd-code{font-size:.7rem;word-break:break-all;white-space:normal}
+  .cmd-cell{gap:.4rem}
+  .copy-btn{opacity:1;pointer-events:auto;width:30px;height:30px;flex-shrink:0}
+  .cmd-desc{font-size:.76rem}
+
+  /* Arch */
+  .arch-wrap{padding:1.1rem;border-radius:12px}
+  .arch-pre{font-size:.68rem;line-height:1.75}
+
+  /* Antigravity */
+  .ag-wrap{padding:1.5rem;gap:1.5rem;border-radius:14px}
+  .ag-spec-key{width:70px;font-size:.62rem}
+  .ag-spec-val{font-size:.7rem;word-break:break-all}
+  .ag-model-card{padding:1.25rem}
+  .ag-model-name{font-size:1.1rem}
+  .ag-model-id{font-size:.62rem}
+
+  /* Setup */
+  .env-body{font-size:.7rem}
+  .env-key{font-size:.68rem}
+  .env-val{font-size:.65rem}
+  .code-body{font-size:.73rem;padding:.9rem 1rem}
+
+  /* Features */
+  .features-grid{grid-template-columns:1fr}
+  .feat-card{padding:1.1rem;border-radius:12px}
+  .feat-name{font-size:.9rem}
+  .feat-desc{font-size:.75rem}
+
+  /* KF table */
+  .kf-table td,.kf-table th{padding:.6rem .75rem;font-size:.74rem}
+
+  /* Footer */
+  #footer{padding:2.5rem 1rem}
+  .footer-brand{font-size:2rem}
+  .footer-acts{flex-direction:column;align-items:stretch;max-width:300px;margin-left:auto;margin-right:auto;gap:.55rem}
+  .footer-acts .btn-primary,
+  .footer-acts .btn-secondary{width:100%;justify-content:center}
+  .footer-links{gap:1rem;font-size:.7rem}
+}
+
+@media(max-width:400px){
+  .hero-h1{font-size:clamp(2.2rem,12vw,3rem)}
+  .terminal{border-radius:10px}
+  .term-body{font-size:.67rem}
+  .section-h2{font-size:1.7rem}
+}
+
 </style>
 </head>
 <body>
@@ -659,10 +786,32 @@ section{position:relative;z-index:10}
     <div class="try-chips">
       <span class="try-chip" data-try="/task create a schedule for tomorrow"><span class="chip-icon">📅</span><span class="chip-text">/task create a schedule for tomorrow</span><span class="chip-copy-flash">✓ copied!</span></span>
       <span class="try-chip" data-try="/task create a schedule for tomorrow morning"><span class="chip-icon">🌅</span><span class="chip-text">/task create a schedule for tomorrow morning</span><span class="chip-copy-flash">✓ copied!</span></span>
-      <span class="try-chip" data-try="/task create a weekly workout plan"><span class="chip-icon">💪</span><span class="chip-text">/task create a weekly workout plan</span><span class="chip-copy-flash">✓ copied!</span></span>
-      <span class="try-chip" data-try="/task make a birthday party checklist"><span class="chip-icon">🎂</span><span class="chip-text">/task make a birthday party checklist</span><span class="chip-copy-flash">✓ copied!</span></span>
+      <span class="try-chip" data-try="/task create a simple HTML resume"><span class="chip-icon">📄</span><span class="chip-text">/task create a simple HTML resume</span><span class="chip-copy-flash">✓ copied!</span></span>
+      <span class="try-chip" data-try="/task make a grocery list template in HTML"><span class="chip-icon">🛒</span><span class="chip-text">/task make a grocery list template in HTML</span><span class="chip-copy-flash">✓ copied!</span></span>
       <span class="try-chip" data-try="/task write a Python CSV parser"><span class="chip-icon">🐍</span><span class="chip-text">/task write a Python CSV parser</span><span class="chip-copy-flash">✓ copied!</span></span>
       <span class="try-chip" data-try="/task build a landing page for my SaaS"><span class="chip-icon">🌐</span><span class="chip-text">/task build a landing page for my SaaS</span><span class="chip-copy-flash">✓ copied!</span></span>
+    </div>
+
+    <!-- WORKS / DOESN'T WORK EXPLAINER -->
+    <div class="works-grid">
+      <div class="works-card works-yes">
+        <div class="works-hd"><span class="works-icon">✅</span><span class="works-title">Tasks that work</span></div>
+        <div class="works-list">
+          <div class="works-row"><span class="w-dot green"></span>Tasks that output a <strong>file</strong> (HTML, .py, .md, .json, .csv)</div>
+          <div class="works-row"><span class="w-dot green"></span>Anything you'd ask Gemini to <strong>build or generate</strong></div>
+          <div class="works-row"><span class="w-dot green"></span>Short, specific requests — <em>/task create a schedule for tomorrow</em></div>
+          <div class="works-row"><span class="w-dot green"></span>Code files, templates, config files, landing pages</div>
+        </div>
+      </div>
+      <div class="works-card works-no">
+        <div class="works-hd"><span class="works-icon">❌</span><span class="works-title">Tasks that hit MESSAGETOOLONG</span></div>
+        <div class="works-list">
+          <div class="works-row"><span class="w-dot red"></span>Tasks that return <strong>long plain text</strong> in chat (no file)</div>
+          <div class="works-row"><span class="w-dot red"></span>Open-ended plans — <em>/task create a weekly workout plan</em></div>
+          <div class="works-row"><span class="w-dot red"></span>Multi-section lists that exceed <strong>4096 chars</strong> in Telegram</div>
+          <div class="works-row works-fix"><span class="w-dot cyan"></span><strong>Fix:</strong> add "in HTML" — <em>/task create a workout plan in HTML</em> ✅</div>
+        </div>
+      </div>
     </div>
 
     <div class="cmd-categories">
@@ -675,11 +824,14 @@ section{position:relative;z-index:10}
         </div>
         <table class="cmd-table">
           <tbody>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a schedule for tomorrow</code><button class="copy-btn" data-copy="/task create a schedule for tomorrow" title="Copy command">⎘</button></div></td><td class="cmd-desc">Returns a clean daily schedule as an HTML file</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a schedule for tomorrow morning</code><button class="copy-btn" data-copy="/task create a schedule for tomorrow morning" title="Copy command">⎘</button></div></td><td class="cmd-desc">Focused morning block planner — time slots, priorities, and breaks</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a weekly workout plan</code><button class="copy-btn" data-copy="/task create a weekly workout plan" title="Copy command">⎘</button></div></td><td class="cmd-desc">Returns a structured .html workout schedule with days and exercises</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task write a Python CSV parser</code><button class="copy-btn" data-copy="/task write a Python CSV parser" title="Copy command">⎘</button></div></td><td class="cmd-desc">Returns a runnable .py script — developer tasks work too</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task build a landing page for FlowTrack</code><button class="copy-btn" data-copy="/task build a landing page for FlowTrack" title="Copy command">⎘</button></div></td><td class="cmd-desc">Returns a complete self-contained .html landing page</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a schedule for tomorrow</code><button class="copy-btn" data-copy="/task create a schedule for tomorrow" title="Copy command">⎘</button></div></td><td class="cmd-desc">Daily schedule as a formatted HTML file ✅</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a schedule for tomorrow morning</code><button class="copy-btn" data-copy="/task create a schedule for tomorrow morning" title="Copy command">⎘</button></div></td><td class="cmd-desc">Morning block planner with time slots and priorities ✅</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a simple HTML resume</code><button class="copy-btn" data-copy="/task create a simple HTML resume" title="Copy command">⎘</button></div></td><td class="cmd-desc">Single-page HTML resume template — save and open in browser ✅</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task write a Python CSV parser</code><button class="copy-btn" data-copy="/task write a Python CSV parser" title="Copy command">⎘</button></div></td><td class="cmd-desc">Returns a .py file — runs out of the box ✅</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task build a landing page for my SaaS</code><button class="copy-btn" data-copy="/task build a landing page for my SaaS" title="Copy command">⎘</button></div></td><td class="cmd-desc">Self-contained .html landing page with sections and CTA ✅</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a JSON config for a todo app</code><button class="copy-btn" data-copy="/task create a JSON config for a todo app" title="Copy command">⎘</button></div></td><td class="cmd-desc">Returns a .json schema file ✅</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task make a grocery list template in HTML</code><button class="copy-btn" data-copy="/task make a grocery list template in HTML" title="Copy command">⎘</button></div></td><td class="cmd-desc">Interactive checklist page — tap to check items ✅</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a markdown README for my project</code><button class="copy-btn" data-copy="/task create a markdown README for my project" title="Copy command">⎘</button></div></td><td class="cmd-desc">Returns a .md README with standard sections ✅</td></tr>
           </tbody>
         </table>
       </div>
