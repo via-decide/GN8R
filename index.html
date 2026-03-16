@@ -730,17 +730,25 @@ section{position:relative;z-index:10}
         <span class="term-prompt">$</span>
         <span class="term-cmd">/task create a schedule for tomorrow</span>
       </div>
-      <div class="term-output cyan">⚡ Planning task…</div>
+      <div class="term-output cyan">⚡ Planning…</div>
       <div class="term-output gold">✨ Generating with Gemini 2.5 Pro…</div>
-      <div class="term-output green">📎 schedule-tomorrow.html — sent!</div>
+      <div class="term-output green">📎 schedule.pdf — sent!</div>
       <br/>
       <div class="term-line">
         <span class="term-prompt">$</span>
         <span class="term-cmd">/task create a schedule for tomorrow morning</span>
       </div>
-      <div class="term-output cyan">⚡ Planning task…</div>
-      <div class="term-output gold">✨ Gemini focused on morning block…</div>
-      <div class="term-output green">📎 morning-schedule.html — sent!</div>
+      <div class="term-output cyan">⚡ Planning…</div>
+      <div class="term-output gold">✨ Generating morning routine…</div>
+      <div class="term-output green">📎 morning-routine.pdf — sent!</div>
+      <br/>
+      <div class="term-line">
+        <span class="term-prompt">$</span>
+        <span class="term-cmd">/task plan a birthday party for 20 people</span>
+      </div>
+      <div class="term-output cyan">⚡ Planning…</div>
+      <div class="term-output gold">✨ Building party checklist…</div>
+      <div class="term-output green">📎 birthday-party-plan.pdf — sent!</div>
       <br/>
       <div class="term-line">
         <span class="term-prompt">$</span>
@@ -779,17 +787,19 @@ section{position:relative;z-index:10}
 <section id="commands" class="border-top section-pad">
   <div class="container">
     <div class="section-eye">commands</div>
-    <h2 class="section-h2">Every command,<br><em>explained.</em></h2>
-    <p class="section-sub" style="margin-bottom:3rem">Four categories of commands. File generation works for all users. GitHub orchestration requires a GITHUB_TOKEN.</p>
+    <h2 class="section-h2">What can<br><em>GN8R do?</em></h2>
+    <p class="section-sub" style="margin-bottom:2rem">Just type <strong>/task</strong> followed by anything you need. GN8R sends it back as a file. No coding needed — normal everyday tasks work best.</p>
 
     <div class="try-label">Try these now</div>
     <div class="try-chips">
       <span class="try-chip" data-try="/task create a schedule for tomorrow"><span class="chip-icon">📅</span><span class="chip-text">/task create a schedule for tomorrow</span><span class="chip-copy-flash">✓ copied!</span></span>
       <span class="try-chip" data-try="/task create a schedule for tomorrow morning"><span class="chip-icon">🌅</span><span class="chip-text">/task create a schedule for tomorrow morning</span><span class="chip-copy-flash">✓ copied!</span></span>
-      <span class="try-chip" data-try="/task create a simple HTML resume"><span class="chip-icon">📄</span><span class="chip-text">/task create a simple HTML resume</span><span class="chip-copy-flash">✓ copied!</span></span>
-      <span class="try-chip" data-try="/task make a grocery list template in HTML"><span class="chip-icon">🛒</span><span class="chip-text">/task make a grocery list template in HTML</span><span class="chip-copy-flash">✓ copied!</span></span>
-      <span class="try-chip" data-try="/task write a Python CSV parser"><span class="chip-icon">🐍</span><span class="chip-text">/task write a Python CSV parser</span><span class="chip-copy-flash">✓ copied!</span></span>
-      <span class="try-chip" data-try="/task build a landing page for my SaaS"><span class="chip-icon">🌐</span><span class="chip-text">/task build a landing page for my SaaS</span><span class="chip-copy-flash">✓ copied!</span></span>
+      <span class="try-chip" data-try="/task plan a birthday party for 20 people"><span class="chip-icon">🎂</span><span class="chip-text">/task plan a birthday party for 20 people</span><span class="chip-copy-flash">✓ copied!</span></span>
+      <span class="try-chip" data-try="/task make a weekly meal plan for a family of 4"><span class="chip-icon">🍽️</span><span class="chip-text">/task make a weekly meal plan for a family of 4</span><span class="chip-copy-flash">✓ copied!</span></span>
+      <span class="try-chip" data-try="/task create a study plan for my exams next week"><span class="chip-icon">📚</span><span class="chip-text">/task create a study plan for my exams next week</span><span class="chip-copy-flash">✓ copied!</span></span>
+      <span class="try-chip" data-try="/task make a packing list for a 5 day trip"><span class="chip-icon">🧳</span><span class="chip-text">/task make a packing list for a 5 day trip</span><span class="chip-copy-flash">✓ copied!</span></span>
+      <span class="try-chip" data-try="/task create a monthly budget plan"><span class="chip-icon">💰</span><span class="chip-text">/task create a monthly budget plan</span><span class="chip-copy-flash">✓ copied!</span></span>
+      <span class="try-chip" data-try="/task write a resignation letter"><span class="chip-icon">✉️</span><span class="chip-text">/task write a resignation letter</span><span class="chip-copy-flash">✓ copied!</span></span>
     </div>
 
     <!-- WORKS / DOESN'T WORK EXPLAINER -->
@@ -797,19 +807,19 @@ section{position:relative;z-index:10}
       <div class="works-card works-yes">
         <div class="works-hd"><span class="works-icon">✅</span><span class="works-title">Tasks that work</span></div>
         <div class="works-list">
-          <div class="works-row"><span class="w-dot green"></span>Tasks that output a <strong>file</strong> (HTML, .py, .md, .json, .csv)</div>
-          <div class="works-row"><span class="w-dot green"></span>Anything you'd ask Gemini to <strong>build or generate</strong></div>
+          <div class="works-row"><span class="w-dot green"></span>Everyday tasks like <strong>schedules, plans, lists, letters</strong></div>
+          <div class="works-row"><span class="w-dot green"></span>Anything with a clear output — <strong>meal plan, study plan, budget</strong></div>
           <div class="works-row"><span class="w-dot green"></span>Short, specific requests — <em>/task create a schedule for tomorrow</em></div>
-          <div class="works-row"><span class="w-dot green"></span>Code files, templates, config files, landing pages</div>
+          <div class="works-row"><span class="w-dot green"></span>Letters, checklists, travel plans, party planning</div>
         </div>
       </div>
       <div class="works-card works-no">
         <div class="works-hd"><span class="works-icon">❌</span><span class="works-title">Tasks that hit MESSAGETOOLONG</span></div>
         <div class="works-list">
           <div class="works-row"><span class="w-dot red"></span>Tasks that return <strong>long plain text</strong> in chat (no file)</div>
-          <div class="works-row"><span class="w-dot red"></span>Open-ended plans — <em>/task create a weekly workout plan</em></div>
-          <div class="works-row"><span class="w-dot red"></span>Multi-section lists that exceed <strong>4096 chars</strong> in Telegram</div>
-          <div class="works-row works-fix"><span class="w-dot cyan"></span><strong>Fix:</strong> add "in HTML" — <em>/task create a workout plan in HTML</em> ✅</div>
+          <div class="works-row"><span class="w-dot red"></span>Vague open-ended requests — <em>/task help me</em></div>
+          <div class="works-row"><span class="w-dot red"></span>Very long requests that Telegram can't fit in one message</div>
+          <div class="works-row works-fix"><span class="w-dot cyan"></span><strong>Tip:</strong> Be specific — <em>/task create a schedule for tomorrow morning</em> works better than <em>/task make a plan</em> ✅</div>
         </div>
       </div>
     </div>
@@ -819,19 +829,19 @@ section{position:relative;z-index:10}
       <div class="cmd-cat reveal">
         <div class="cmd-cat-hd">
           <span class="cmd-cat-icon">📄</span>
-          <span class="cmd-cat-name">File Generation</span>
-          <span class="cmd-cat-badge all">All Users</span>
+          <span class="cmd-cat-name">Everyday Tasks</span>
+          <span class="cmd-cat-badge all">Try These First</span>
         </div>
         <table class="cmd-table">
           <tbody>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a schedule for tomorrow</code><button class="copy-btn" data-copy="/task create a schedule for tomorrow" title="Copy command">⎘</button></div></td><td class="cmd-desc">Daily schedule as a formatted HTML file ✅</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a schedule for tomorrow morning</code><button class="copy-btn" data-copy="/task create a schedule for tomorrow morning" title="Copy command">⎘</button></div></td><td class="cmd-desc">Morning block planner with time slots and priorities ✅</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a simple HTML resume</code><button class="copy-btn" data-copy="/task create a simple HTML resume" title="Copy command">⎘</button></div></td><td class="cmd-desc">Single-page HTML resume template — save and open in browser ✅</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task write a Python CSV parser</code><button class="copy-btn" data-copy="/task write a Python CSV parser" title="Copy command">⎘</button></div></td><td class="cmd-desc">Returns a .py file — runs out of the box ✅</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task build a landing page for my SaaS</code><button class="copy-btn" data-copy="/task build a landing page for my SaaS" title="Copy command">⎘</button></div></td><td class="cmd-desc">Self-contained .html landing page with sections and CTA ✅</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a JSON config for a todo app</code><button class="copy-btn" data-copy="/task create a JSON config for a todo app" title="Copy command">⎘</button></div></td><td class="cmd-desc">Returns a .json schema file ✅</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task make a grocery list template in HTML</code><button class="copy-btn" data-copy="/task make a grocery list template in HTML" title="Copy command">⎘</button></div></td><td class="cmd-desc">Interactive checklist page — tap to check items ✅</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a markdown README for my project</code><button class="copy-btn" data-copy="/task create a markdown README for my project" title="Copy command">⎘</button></div></td><td class="cmd-desc">Returns a .md README with standard sections ✅</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a schedule for tomorrow</code><button class="copy-btn" data-copy="/task create a schedule for tomorrow" title="Copy command">⎘</button></div></td><td class="cmd-desc">Get a full day plan sent to you 📅</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a schedule for tomorrow morning</code><button class="copy-btn" data-copy="/task create a schedule for tomorrow morning" title="Copy command">⎘</button></div></td><td class="cmd-desc">Morning routine with time slots 🌅</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task plan a birthday party for 20 people</code><button class="copy-btn" data-copy="/task plan a birthday party for 20 people" title="Copy command">⎘</button></div></td><td class="cmd-desc">Full party checklist with tasks, food and timeline 🎂</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task make a weekly meal plan for a family of 4</code><button class="copy-btn" data-copy="/task make a weekly meal plan for a family of 4" title="Copy command">⎘</button></div></td><td class="cmd-desc">7-day meal plan with breakfast, lunch and dinner 🍽️</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a study plan for my exams next week</code><button class="copy-btn" data-copy="/task create a study plan for my exams next week" title="Copy command">⎘</button></div></td><td class="cmd-desc">Day-by-day study schedule with topics and breaks 📚</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task make a packing list for a 5 day trip</code><button class="copy-btn" data-copy="/task make a packing list for a 5 day trip" title="Copy command">⎘</button></div></td><td class="cmd-desc">Complete travel checklist so you forget nothing 🧳</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a monthly budget plan</code><button class="copy-btn" data-copy="/task create a monthly budget plan" title="Copy command">⎘</button></div></td><td class="cmd-desc">Simple income and expense tracker for the month 💰</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task write a resignation letter</code><button class="copy-btn" data-copy="/task write a resignation letter" title="Copy command">⎘</button></div></td><td class="cmd-desc">Professional resignation letter ready to send ✉️</td></tr>
           </tbody>
         </table>
       </div>
