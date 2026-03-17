@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<meta name="description" content="GN8R — AI command center inside Telegram. File generation, GitHub orchestration, and Gemini AI backend."/>
+<meta name="description" content="GN8R — AI command center inside Telegram. File generation, persistent memory, skills, GitHub orchestration, and Gemini AI backend."/>
 <title>GN8R · AI Command Center</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -149,7 +149,7 @@ body::after{
 }
 
 .hero-sub{
-  max-width:580px;font-size:1.05rem;color:var(--tx2);line-height:1.8;
+  max-width:600px;font-size:1.05rem;color:var(--tx2);line-height:1.8;
   margin:0 auto 2.5rem;
   opacity:0;animation:fadeUp .7s .45s forwards;
 }
@@ -208,6 +208,7 @@ body::after{
 .term-output.green{color:var(--green)}
 .term-output.gold{color:var(--gold2)}
 .term-output.cyan{color:var(--cyan2)}
+.term-output.purple{color:var(--purple)}
 .term-cursor{
   display:inline-block;width:9px;height:16px;
   background:var(--cyan);vertical-align:middle;
@@ -285,6 +286,8 @@ section{position:relative;z-index:10}
 .cmd-cat-badge.gh{background:rgba(240,165,0,.1);color:var(--gold2);border:1px solid rgba(240,165,0,.2)}
 .cmd-cat-badge.eng{background:rgba(179,136,255,.1);color:var(--purple);border:1px solid rgba(179,136,255,.2)}
 .cmd-cat-badge.ops{background:rgba(0,230,118,.1);color:var(--green);border:1px solid rgba(0,230,118,.2)}
+.cmd-cat-badge.mem{background:rgba(255,193,64,.1);color:var(--gold2);border:1px solid rgba(255,193,64,.2)}
+.cmd-cat-badge.skl{background:rgba(179,136,255,.12);color:var(--purple);border:1px solid rgba(179,136,255,.22)}
 .cmd-table{width:100%;border-collapse:collapse}
 .cmd-table tr{border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s}
 .cmd-table tr:last-child{border-bottom:none}
@@ -329,12 +332,23 @@ section{position:relative;z-index:10}
 }
 .feat-card:hover{transform:translateY(-4px);border-color:var(--bd2);box-shadow:0 20px 50px rgba(0,0,0,.5)}
 .feat-card:hover::before{opacity:1}
+.feat-card.feat-new{border-color:rgba(0,230,118,.2);background:linear-gradient(135deg,rgba(0,230,118,.03),var(--bg1))}
+.feat-card.feat-new::before{background:linear-gradient(90deg,transparent,var(--green),transparent)}
+.feat-card.feat-new:hover{border-color:rgba(0,230,118,.35);box-shadow:0 20px 50px rgba(0,0,0,.5),0 0 30px rgba(0,230,118,.06)}
+.feat-new-badge{
+  position:absolute;top:.75rem;right:.75rem;
+  font-family:'JetBrains Mono',monospace;font-size:.54rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  padding:.18rem .55rem;border-radius:99px;
+  background:rgba(0,230,118,.1);color:var(--green);border:1px solid rgba(0,230,118,.2);
+}
 .feat-icon{
   width:44px;height:44px;border-radius:12px;
   background:var(--cyan3);border:1px solid rgba(0,212,255,.15);
   display:flex;align-items:center;justify-content:center;
   font-size:1.2rem;margin-bottom:1rem;
 }
+.feat-icon.purple-bg{background:rgba(179,136,255,.1);border-color:rgba(179,136,255,.2)}
+.feat-icon.gold-bg{background:rgba(240,165,0,.1);border-color:rgba(240,165,0,.2)}
 .feat-name{
   font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;
   color:var(--tx);margin-bottom:.4rem;
@@ -457,8 +471,34 @@ section{position:relative;z-index:10}
 .cmd-table tr:hover .copy-btn{opacity:1;pointer-events:auto}
 .copy-btn:hover{background:rgba(0,212,255,.18);border-color:var(--cyan);color:var(--cyan);transform:scale(1.1)}
 .copy-btn.copied{background:rgba(0,230,118,.15);border-color:var(--green);color:var(--green)}
-/* always show on touch devices */
 @media(hover:none),(pointer:coarse){.copy-btn{opacity:1;pointer-events:auto}}
+
+/* ── MEMORY/SKILLS FLOW STRIP ── */
+.flow-strip{
+  display:flex;align-items:center;gap:0;
+  background:var(--bg1);border:1px solid var(--bd);border-radius:14px;
+  padding:1.25rem 1.5rem;overflow-x:auto;scrollbar-width:none;
+  margin-bottom:2.5rem;
+}
+.flow-strip::-webkit-scrollbar{display:none}
+.flow-step{
+  display:flex;flex-direction:column;align-items:center;gap:.4rem;
+  flex-shrink:0;min-width:90px;
+}
+.flow-step-icon{
+  width:40px;height:40px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;
+}
+.flow-step-icon.c{background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.2)}
+.flow-step-icon.g{background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.2)}
+.flow-step-icon.p{background:rgba(179,136,255,.1);border:1px solid rgba(179,136,255,.2)}
+.flow-step-icon.o{background:rgba(240,165,0,.1);border:1px solid rgba(240,165,0,.2)}
+.flow-step-label{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--tx3);text-align:center;letter-spacing:.04em}
+.flow-arrow{
+  font-family:'JetBrains Mono',monospace;font-size:.85rem;
+  color:var(--tx3);padding:0 .5rem;flex-shrink:0;margin-bottom:.75rem;
+}
 
 /* ── FOOTER ── */
 #footer{
@@ -537,14 +577,14 @@ section{position:relative;z-index:10}
 }
 .try-chip:hover{background:rgba(0,212,255,.14);border-color:var(--cyan);color:var(--cyan);transform:translateY(-2px)}
 .try-chip:active{transform:translateY(0) scale(.97)}
+.try-chip.chip-mem{background:rgba(255,193,64,.06);border-color:rgba(255,193,64,.2);color:var(--gold2)}
+.try-chip.chip-mem:hover{background:rgba(255,193,64,.12);border-color:var(--gold2);color:var(--gold2)}
+.try-chip.chip-skl{background:rgba(179,136,255,.07);border-color:rgba(179,136,255,.2);color:var(--purple)}
+.try-chip.chip-skl:hover{background:rgba(179,136,255,.14);border-color:var(--purple);color:var(--purple)}
 .try-chip .chip-icon{font-size:.8rem;flex-shrink:0}
-.try-chip .chip-copy-flash{
-  font-size:.65rem;color:var(--green);
-  display:none;
-}
+.try-chip .chip-copy-flash{font-size:.65rem;color:var(--green);display:none}
 .try-chip.chip-copied .chip-copy-flash{display:inline}
 .try-chip.chip-copied .chip-text{display:none}
-
 
 /* ── WORKS / DOESN'T WORK ── */
 .works-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2.5rem}
@@ -566,15 +606,12 @@ section{position:relative;z-index:10}
    MOBILE OVERHAUL
    ════════════════════════════════ */
 @media(max-width:768px){
-  /* Nav */
   #nav{padding:.7rem 1rem}
   #nav.solid{padding:.6rem 1rem}
   .nav-brand-icon{width:30px;height:30px;font-size:.95rem}
   .nav-brand-name{font-size:.95rem}
   .nav-brand-sub{display:none}
   .nav-cta{font-size:.68rem;padding:.42rem 1rem}
-
-  /* Hero */
   #hero{padding:6.5rem 1.1rem 3.5rem;min-height:auto}
   .hero-eyebrow{font-size:.58rem;padding:.28rem .75rem}
   .hero-h1{font-size:clamp(2.6rem,11vw,3.8rem);margin-bottom:1.1rem}
@@ -582,40 +619,24 @@ section{position:relative;z-index:10}
   .hero-acts{gap:.55rem;margin-bottom:2rem}
   .btn-primary,.btn-secondary{font-size:.75rem;padding:.75rem 1.4rem;border-radius:10px;width:100%;justify-content:center}
   .hero-acts{flex-direction:column;align-items:stretch;max-width:320px;margin-left:auto;margin-right:auto}
-
-  /* Terminal */
   .terminal{border-radius:12px}
   .term-body{padding:.9rem 1rem;font-size:.73rem;line-height:1.85}
   .term-hd{padding:.6rem .9rem}
   .term-title{font-size:.6rem}
-
-  /* Power strip */
   .strip-inner{gap:0;padding:0 1rem}
   .strip-item{padding:0 1rem}
   .strip-num{font-size:1.1rem}
   .strip-lbl{font-size:.62rem}
   .strip-lbl strong{font-size:.66rem}
-
-  /* Section padding + container */
   .section-pad{padding:3rem 0}
   .container{padding:0 1rem}
   .section-h2{font-size:clamp(1.75rem,8vw,2.4rem)}
   .section-sub{font-size:.85rem}
-
-  /* Works grid — stack on mobile */
   .works-grid{grid-template-columns:1fr}
   .works-row{font-size:.76rem}
-
-  /* Try chips — horizontal scroll */
-  .try-chips{
-    flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;
-    scroll-snap-type:x mandatory;padding-bottom:.5rem;
-    scrollbar-width:none;gap:.45rem;
-  }
+  .try-chips{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;padding-bottom:.5rem;scrollbar-width:none;gap:.45rem}
   .try-chips::-webkit-scrollbar{display:none}
   .try-chip{scroll-snap-align:start;flex-shrink:0;font-size:.7rem;padding:.42rem .85rem;min-height:38px}
-
-  /* Command tables — make readable on small screens */
   .cmd-cat-hd{padding:.85rem 1rem}
   .cmd-cat-name{font-size:.72rem}
   .cmd-table td{padding:.7rem .9rem}
@@ -628,50 +649,39 @@ section{position:relative;z-index:10}
   .cmd-cell{gap:.4rem}
   .copy-btn{opacity:1;pointer-events:auto;width:30px;height:30px;flex-shrink:0}
   .cmd-desc{font-size:.76rem}
-
-  /* Arch */
   .arch-wrap{padding:1.1rem;border-radius:12px}
   .arch-pre{font-size:.68rem;line-height:1.75}
-
-  /* Antigravity */
   .ag-wrap{padding:1.5rem;gap:1.5rem;border-radius:14px}
   .ag-spec-key{width:70px;font-size:.62rem}
   .ag-spec-val{font-size:.7rem;word-break:break-all}
   .ag-model-card{padding:1.25rem}
   .ag-model-name{font-size:1.1rem}
   .ag-model-id{font-size:.62rem}
-
-  /* Setup */
   .env-body{font-size:.7rem}
   .env-key{font-size:.68rem}
   .env-val{font-size:.65rem}
   .code-body{font-size:.73rem;padding:.9rem 1rem}
-
-  /* Features */
   .features-grid{grid-template-columns:1fr}
   .feat-card{padding:1.1rem;border-radius:12px}
   .feat-name{font-size:.9rem}
   .feat-desc{font-size:.75rem}
-
-  /* KF table */
   .kf-table td,.kf-table th{padding:.6rem .75rem;font-size:.74rem}
-
-  /* Footer */
   #footer{padding:2.5rem 1rem}
   .footer-brand{font-size:2rem}
   .footer-acts{flex-direction:column;align-items:stretch;max-width:300px;margin-left:auto;margin-right:auto;gap:.55rem}
-  .footer-acts .btn-primary,
-  .footer-acts .btn-secondary{width:100%;justify-content:center}
+  .footer-acts .btn-primary,.footer-acts .btn-secondary{width:100%;justify-content:center}
   .footer-links{gap:1rem;font-size:.7rem}
+  .flow-strip{padding:1rem}
+  .flow-step{min-width:70px}
+  .flow-step-icon{width:34px;height:34px;font-size:.95rem}
+  .flow-step-label{font-size:.55rem}
 }
-
 @media(max-width:400px){
   .hero-h1{font-size:clamp(2.2rem,12vw,3rem)}
   .terminal{border-radius:10px}
   .term-body{font-size:.67rem}
   .section-h2{font-size:1.7rem}
 }
-
 </style>
 </head>
 <body>
@@ -688,24 +698,25 @@ section{position:relative;z-index:10}
   </div>
   <div class="nav-links">
     <a class="nav-link" href="#commands">Commands</a>
+    <a class="nav-link" href="#memory">Memory</a>
+    <a class="nav-link" href="#skills">Skills</a>
     <a class="nav-link" href="#architecture">Architecture</a>
     <a class="nav-link" href="#features">Features</a>
     <a class="nav-link" href="#setup">Setup</a>
-    <a class="nav-link" href="#antigravity">Antigravity</a>
   </div>
   <a class="nav-cta" href="https://t.me/GN8RBot" target="_blank" rel="noopener">✈ Open Bot</a>
 </nav>
 
 <section id="hero">
-  <div class="hero-eyebrow"><div class="hero-dot"></div>Powered by Antigravity · Gemini AI</div>
+  <div class="hero-eyebrow"><div class="hero-dot"></div>Antigravity · Memory · Skills · Gemini 2.5</div>
   <h1 class="hero-h1">
     <span class="line1">Decide Engine</span>
     <span class="line2">Bot · GN8R</span>
   </h1>
   <p class="hero-sub">
     Your <strong>AI command center</strong>, inside Telegram.
-    File generation for everyone. GitHub repo orchestration for builders.
-    Antigravity edition.
+    Generate real files in seconds. <strong>Remembers your context.</strong>
+    Run saved <strong>skill workflows</strong> on demand. GitHub orchestration for builders.
   </p>
   <div class="hero-acts">
     <a class="btn-primary" href="https://t.me/GN8RBot" target="_blank" rel="noopener">✈ Launch on Telegram</a>
@@ -720,40 +731,25 @@ section{position:relative;z-index:10}
       <div class="term-title">@GN8RBot · terminal session</div>
     </div>
     <div class="term-body">
-      <div class="term-line">
-        <span class="term-prompt">$</span>
-        <span class="term-cmd">/start</span>
-      </div>
-      <div class="term-output green">✅ GN8R ready · Engine: Antigravity (Gemini 2.5 Pro)</div>
+      <div class="term-line"><span class="term-prompt">$</span><span class="term-cmd">/remember stack: TypeScript + Next.js + Supabase</span></div>
+      <div class="term-output green">📌 Remembered: stack → TypeScript + Next.js + Supabase</div>
       <br/>
-      <div class="term-line">
-        <span class="term-prompt">$</span>
-        <span class="term-cmd">/task create a schedule for tomorrow</span>
-      </div>
-      <div class="term-output cyan">⚡ Planning…</div>
-      <div class="term-output gold">✨ Generating with Gemini 2.5 Pro…</div>
-      <div class="term-output green">📎 schedule.pdf — sent!</div>
+      <div class="term-line"><span class="term-prompt">$</span><span class="term-cmd">/task create a user auth module</span></div>
+      <div class="term-output cyan">⚡ Planning… (using your stack context)</div>
+      <div class="term-output gold">✨ Generating TypeScript + Supabase auth…</div>
+      <div class="term-output green">📎 auth-module.ts — sent!</div>
       <br/>
-      <div class="term-line">
-        <span class="term-prompt">$</span>
-        <span class="term-cmd">/task create a schedule for tomorrow morning</span>
-      </div>
-      <div class="term-output cyan">⚡ Planning…</div>
-      <div class="term-output gold">✨ Generating morning routine…</div>
-      <div class="term-output green">📎 morning-routine.pdf — sent!</div>
+      <div class="term-line"><span class="term-prompt">$</span><span class="term-cmd">/skill run readme-gen MyProject</span></div>
+      <div class="term-output cyan">⚡ Running skill: readme-gen…</div>
+      <div class="term-output gold">✨ Building README with your stack context…</div>
+      <div class="term-output green">📎 README.md — sent!</div>
       <br/>
-      <div class="term-line">
-        <span class="term-prompt">$</span>
-        <span class="term-cmd">/task plan a birthday party for 20 people</span>
-      </div>
+      <div class="term-line"><span class="term-prompt">$</span><span class="term-cmd">/task plan a birthday party for 20 people</span></div>
       <div class="term-output cyan">⚡ Planning…</div>
       <div class="term-output gold">✨ Building party checklist…</div>
-      <div class="term-output green">📎 birthday-party-plan.pdf — sent!</div>
+      <div class="term-output green">📎 birthday-party-plan.md — sent!</div>
       <br/>
-      <div class="term-line">
-        <span class="term-prompt">$</span>
-        <span class="term-cmd"><span class="term-cursor"></span></span>
-      </div>
+      <div class="term-line"><span class="term-prompt">$</span><span class="term-cmd"><span class="term-cursor"></span></span></div>
     </div>
   </div>
 </section>
@@ -761,20 +757,24 @@ section{position:relative;z-index:10}
 <div id="power-strip">
   <div class="strip-inner">
     <div class="strip-item">
-      <div class="strip-num">30+</div>
+      <div class="strip-num">40+</div>
       <div class="strip-lbl"><strong>Commands</strong>across all modes</div>
     </div>
     <div class="strip-item">
-      <div class="strip-num">2</div>
-      <div class="strip-lbl"><strong>Pipelines</strong>user + GitHub</div>
+      <div class="strip-num">3</div>
+      <div class="strip-lbl"><strong>Pipelines</strong>user · GitHub · skills</div>
+    </div>
+    <div class="strip-item">
+      <div class="strip-num">∞</div>
+      <div class="strip-lbl"><strong>Memory facts</strong>per user, persistent</div>
+    </div>
+    <div class="strip-item">
+      <div class="strip-num">3+</div>
+      <div class="strip-lbl"><strong>Built-in skills</strong>+ custom</div>
     </div>
     <div class="strip-item">
       <div class="strip-num">8K</div>
       <div class="strip-lbl"><strong>Max tokens</strong>per generation</div>
-    </div>
-    <div class="strip-item">
-      <div class="strip-num">∞</div>
-      <div class="strip-lbl"><strong>File types</strong>HTML, .py, .md, .json…</div>
     </div>
     <div class="strip-item">
       <div class="strip-num">v2</div>
@@ -788,16 +788,18 @@ section{position:relative;z-index:10}
   <div class="container">
     <div class="section-eye">commands</div>
     <h2 class="section-h2">What can<br><em>GN8R do?</em></h2>
-    <p class="section-sub" style="margin-bottom:2rem">Just type <strong>/task</strong> followed by anything you need. GN8R sends it back as a file. No coding needed — normal everyday tasks work best.</p>
+    <p class="section-sub" style="margin-bottom:2rem">Type <strong>/task</strong> for instant file generation. Use <strong>/remember</strong> so GN8R knows your context. Run <strong>/skill</strong> for saved workflows.</p>
 
     <div class="try-label">Try these now</div>
     <div class="try-chips">
       <span class="try-chip" data-try="/task create a schedule for tomorrow"><span class="chip-icon">📅</span><span class="chip-text">/task create a schedule for tomorrow</span><span class="chip-copy-flash">✓ copied!</span></span>
-      <span class="try-chip" data-try="/task create a schedule for tomorrow morning"><span class="chip-icon">🌅</span><span class="chip-text">/task create a schedule for tomorrow morning</span><span class="chip-copy-flash">✓ copied!</span></span>
-      <span class="try-chip" data-try="/task plan a birthday party for 20 people"><span class="chip-icon">🎂</span><span class="chip-text">/task plan a birthday party for 20 people</span><span class="chip-copy-flash">✓ copied!</span></span>
+      <span class="try-chip" data-try="/task create a landing page for a coffee shop"><span class="chip-icon">🌐</span><span class="chip-text">/task create a landing page for a coffee shop</span><span class="chip-copy-flash">✓ copied!</span></span>
+      <span class="try-chip" data-try="/task write a Python CSV parser script"><span class="chip-icon">🐍</span><span class="chip-text">/task write a Python CSV parser script</span><span class="chip-copy-flash">✓ copied!</span></span>
+      <span class="try-chip chip-mem" data-try="/remember stack: TypeScript + Next.js"><span class="chip-icon">📌</span><span class="chip-text">/remember stack: TypeScript + Next.js</span><span class="chip-copy-flash">✓ copied!</span></span>
+      <span class="try-chip chip-mem" data-try="/recall"><span class="chip-icon">🧠</span><span class="chip-text">/recall</span><span class="chip-copy-flash">✓ copied!</span></span>
+      <span class="try-chip chip-skl" data-try="/skill run readme-gen MyProject"><span class="chip-icon">⚡</span><span class="chip-text">/skill run readme-gen MyProject</span><span class="chip-copy-flash">✓ copied!</span></span>
+      <span class="try-chip chip-skl" data-try="/skill list"><span class="chip-icon">📋</span><span class="chip-text">/skill list</span><span class="chip-copy-flash">✓ copied!</span></span>
       <span class="try-chip" data-try="/task make a weekly meal plan for a family of 4"><span class="chip-icon">🍽️</span><span class="chip-text">/task make a weekly meal plan for a family of 4</span><span class="chip-copy-flash">✓ copied!</span></span>
-      <span class="try-chip" data-try="/task create a study plan for my exams next week"><span class="chip-icon">📚</span><span class="chip-text">/task create a study plan for my exams next week</span><span class="chip-copy-flash">✓ copied!</span></span>
-      <span class="try-chip" data-try="/task make a packing list for a 5 day trip"><span class="chip-icon">🧳</span><span class="chip-text">/task make a packing list for a 5 day trip</span><span class="chip-copy-flash">✓ copied!</span></span>
       <span class="try-chip" data-try="/task create a monthly budget plan"><span class="chip-icon">💰</span><span class="chip-text">/task create a monthly budget plan</span><span class="chip-copy-flash">✓ copied!</span></span>
       <span class="try-chip" data-try="/task write a resignation letter"><span class="chip-icon">✉️</span><span class="chip-text">/task write a resignation letter</span><span class="chip-copy-flash">✓ copied!</span></span>
     </div>
@@ -805,12 +807,12 @@ section{position:relative;z-index:10}
     <!-- WORKS / DOESN'T WORK EXPLAINER -->
     <div class="works-grid">
       <div class="works-card works-yes">
-        <div class="works-hd"><span class="works-icon">✅</span><span class="works-title">Tasks that work</span></div>
+        <div class="works-hd"><span class="works-icon">✅</span><span class="works-title">Tasks that work great</span></div>
         <div class="works-list">
-          <div class="works-row"><span class="w-dot green"></span>Everyday tasks like <strong>schedules, plans, lists, letters</strong></div>
-          <div class="works-row"><span class="w-dot green"></span>Anything with a clear output — <strong>meal plan, study plan, budget</strong></div>
-          <div class="works-row"><span class="w-dot green"></span>Short, specific requests — <em>/task create a schedule for tomorrow</em></div>
-          <div class="works-row"><span class="w-dot green"></span>Letters, checklists, travel plans, party planning</div>
+          <div class="works-row"><span class="w-dot green"></span>Everyday tasks — <strong>schedules, plans, lists, letters</strong></div>
+          <div class="works-row"><span class="w-dot green"></span>Code files — <strong>HTML pages, Python scripts, SQL, JSON</strong></div>
+          <div class="works-row"><span class="w-dot green"></span>Short specific requests — <em>/task create a schedule for tomorrow</em></div>
+          <div class="works-row"><span class="w-dot green"></span>Skills auto-inject your saved context (stack, prefs, etc.)</div>
         </div>
       </div>
       <div class="works-card works-no">
@@ -818,8 +820,8 @@ section{position:relative;z-index:10}
         <div class="works-list">
           <div class="works-row"><span class="w-dot red"></span>Tasks that return <strong>long plain text</strong> in chat (no file)</div>
           <div class="works-row"><span class="w-dot red"></span>Vague open-ended requests — <em>/task help me</em></div>
-          <div class="works-row"><span class="w-dot red"></span>Very long requests that Telegram can't fit in one message</div>
-          <div class="works-row works-fix"><span class="w-dot cyan"></span><strong>Tip:</strong> Be specific — <em>/task create a schedule for tomorrow morning</em> works better than <em>/task make a plan</em> ✅</div>
+          <div class="works-row"><span class="w-dot red"></span>Very long output that Telegram can't fit in one message</div>
+          <div class="works-row works-fix"><span class="w-dot cyan"></span><strong>Tip:</strong> Be specific — <em>/task create a schedule for tomorrow morning</em> beats <em>/task make a plan</em> ✅</div>
         </div>
       </div>
     </div>
@@ -834,14 +836,55 @@ section{position:relative;z-index:10}
         </div>
         <table class="cmd-table">
           <tbody>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a schedule for tomorrow</code><button class="copy-btn" data-copy="/task create a schedule for tomorrow" title="Copy command">⎘</button></div></td><td class="cmd-desc">Get a full day plan sent to you 📅</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a schedule for tomorrow morning</code><button class="copy-btn" data-copy="/task create a schedule for tomorrow morning" title="Copy command">⎘</button></div></td><td class="cmd-desc">Morning routine with time slots 🌅</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task plan a birthday party for 20 people</code><button class="copy-btn" data-copy="/task plan a birthday party for 20 people" title="Copy command">⎘</button></div></td><td class="cmd-desc">Full party checklist with tasks, food and timeline 🎂</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task make a weekly meal plan for a family of 4</code><button class="copy-btn" data-copy="/task make a weekly meal plan for a family of 4" title="Copy command">⎘</button></div></td><td class="cmd-desc">7-day meal plan with breakfast, lunch and dinner 🍽️</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a study plan for my exams next week</code><button class="copy-btn" data-copy="/task create a study plan for my exams next week" title="Copy command">⎘</button></div></td><td class="cmd-desc">Day-by-day study schedule with topics and breaks 📚</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task make a packing list for a 5 day trip</code><button class="copy-btn" data-copy="/task make a packing list for a 5 day trip" title="Copy command">⎘</button></div></td><td class="cmd-desc">Complete travel checklist so you forget nothing 🧳</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a monthly budget plan</code><button class="copy-btn" data-copy="/task create a monthly budget plan" title="Copy command">⎘</button></div></td><td class="cmd-desc">Simple income and expense tracker for the month 💰</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task write a resignation letter</code><button class="copy-btn" data-copy="/task write a resignation letter" title="Copy command">⎘</button></div></td><td class="cmd-desc">Professional resignation letter ready to send ✉️</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a landing page for a coffee shop</code><button class="copy-btn" data-copy="/task create a landing page for a coffee shop" title="Copy">⎘</button></div></td><td class="cmd-desc">Full HTML page with CSS delivered as a file 🌐</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task write a Python CSV parser script</code><button class="copy-btn" data-copy="/task write a Python CSV parser script" title="Copy">⎘</button></div></td><td class="cmd-desc">Working .py file ready to run 🐍</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a professional markdown resume</code><button class="copy-btn" data-copy="/task create a professional markdown resume for a Software Engineer" title="Copy">⎘</button></div></td><td class="cmd-desc">Polished resume.md ready to customise 📄</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a schedule for tomorrow</code><button class="copy-btn" data-copy="/task create a schedule for tomorrow" title="Copy">⎘</button></div></td><td class="cmd-desc">Full day plan sent as a file 📅</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task plan a birthday party for 20 people</code><button class="copy-btn" data-copy="/task plan a birthday party for 20 people" title="Copy">⎘</button></div></td><td class="cmd-desc">Complete checklist with timeline 🎂</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task make a weekly meal plan for a family of 4</code><button class="copy-btn" data-copy="/task make a weekly meal plan for a family of 4" title="Copy">⎘</button></div></td><td class="cmd-desc">7-day meal plan with breakfast, lunch, dinner 🍽️</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a study plan for my exams next week</code><button class="copy-btn" data-copy="/task create a study plan for my exams next week" title="Copy">⎘</button></div></td><td class="cmd-desc">Day-by-day schedule with topics and breaks 📚</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task create a monthly budget plan</code><button class="copy-btn" data-copy="/task create a monthly budget plan" title="Copy">⎘</button></div></td><td class="cmd-desc">Income + expense tracker for the month 💰</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task write a resignation letter</code><button class="copy-btn" data-copy="/task write a resignation letter" title="Copy">⎘</button></div></td><td class="cmd-desc">Professional letter ready to send ✉️</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- MEMORY -->
+      <div class="cmd-cat reveal" id="memory">
+        <div class="cmd-cat-hd">
+          <span class="cmd-cat-icon">🧠</span>
+          <span class="cmd-cat-name">Persistent Memory</span>
+          <span class="cmd-cat-badge mem">New</span>
+        </div>
+        <table class="cmd-table">
+          <tbody>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/remember stack: TypeScript + Next.js</code><button class="copy-btn" data-copy="/remember stack: TypeScript + Next.js" title="Copy">⎘</button></div></td><td class="cmd-desc">Store a fact. GN8R will use it automatically in every future /task 📌</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/remember I prefer coding in TypeScript</code><button class="copy-btn" data-copy="/remember I prefer coding in TypeScript" title="Copy">⎘</button></div></td><td class="cmd-desc">Freeform — auto-extracts a key from your sentence</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/recall</code><button class="copy-btn" data-copy="/recall" title="Copy">⎘</button></div></td><td class="cmd-desc">Show everything GN8R remembers about you 🧠</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/recall stack</code><button class="copy-btn" data-copy="/recall stack" title="Copy">⎘</button></div></td><td class="cmd-desc">Look up one specific fact by key</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/forget stack</code><button class="copy-btn" data-copy="/forget stack" title="Copy">⎘</button></div></td><td class="cmd-desc">Delete one memory by key 🗑️</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/forget all</code><button class="copy-btn" data-copy="/forget all" title="Copy">⎘</button></div></td><td class="cmd-desc">Clear your entire memory (asks for confirmation)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- SKILLS -->
+      <div class="cmd-cat reveal" id="skills">
+        <div class="cmd-cat-hd">
+          <span class="cmd-cat-icon">⚡</span>
+          <span class="cmd-cat-name">Skills</span>
+          <span class="cmd-cat-badge skl">New</span>
+        </div>
+        <table class="cmd-table">
+          <tbody>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/skill list</code><button class="copy-btn" data-copy="/skill list" title="Copy">⎘</button></div></td><td class="cmd-desc">See all available skills — built-in and your custom ones 📋</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/skill run readme-gen MyProject</code><button class="copy-btn" data-copy="/skill run readme-gen MyProject" title="Copy">⎘</button></div></td><td class="cmd-desc">Generate a full README.md. Built-in skill — works out of the box 📝</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/skill run sql-migration UserSystem</code><button class="copy-btn" data-copy="/skill run sql-migration UserSystem" title="Copy">⎘</button></div></td><td class="cmd-desc">Generate a SQL migration with up/down. Built-in skill 🗄️</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/skill run tool-spec MyToolName</code><button class="copy-btn" data-copy="/skill run tool-spec MyToolName" title="Copy">⎘</button></div></td><td class="cmd-desc">Generate a decide.engine-tools config.json spec. Built-in skill ⚙️</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/skill define code-fixer: Find 3 bugs in: {{input}}</code><button class="copy-btn" data-copy="/skill define code-fixer: Find 3 security bugs in: {{input}}" title="Copy">⎘</button></div></td><td class="cmd-desc">Create your own reusable prompt template. Use <code class="cmd-code">{{input}}</code> as a placeholder ✏️</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/skill run code-fixer console.log(password)</code><button class="copy-btn" data-copy="/skill run code-fixer console.log(password)" title="Copy">⎘</button></div></td><td class="cmd-desc">Run your custom skill with any input</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/skill delete code-fixer</code><button class="copy-btn" data-copy="/skill delete code-fixer" title="Copy">⎘</button></div></td><td class="cmd-desc">Remove a custom skill you no longer need 🗑️</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/skill help</code><button class="copy-btn" data-copy="/skill help" title="Copy">⎘</button></div></td><td class="cmd-desc">Show usage examples for all skill commands</td></tr>
           </tbody>
         </table>
       </div>
@@ -854,13 +897,13 @@ section{position:relative;z-index:10}
         </div>
         <table class="cmd-table">
           <tbody>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/repos</code><button class="copy-btn" data-copy="/repos" title="Copy command">⎘</button></div></td><td class="cmd-desc">List all repositories for the configured GitHub owner</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/analyze owner/repo</code><button class="copy-btn" data-copy="/analyze owner/repo" title="Copy command">⎘</button></div></td><td class="cmd-desc">Inspect repo metadata, structure, and quality signals</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/improve owner/repo</code><button class="copy-btn" data-copy="/improve owner/repo" title="Copy command">⎘</button></div></td><td class="cmd-desc">Full Simba pipeline: audit → generate → push branch → open PR</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/task repo: owner/repo<br/>mode: codex<br/>task: what to do</code><button class="copy-btn" data-copy="/task repo: owner/repomode: codextask: what to do" title="Copy command">⎘</button></div></td><td class="cmd-desc">Structured YAML-style task targeting a specific repo</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/resume</code><button class="copy-btn" data-copy="/resume" title="Copy command">⎘</button></div></td><td class="cmd-desc">Re-run the last failed task from its checkpoint</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/branches owner/repo</code><button class="copy-btn" data-copy="/branches owner/repo" title="Copy command">⎘</button></div></td><td class="cmd-desc">List all simba/* branches in the repo</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/cleanup owner/repo</code><button class="copy-btn" data-copy="/cleanup owner/repo" title="Copy command">⎘</button></div></td><td class="cmd-desc">Delete stale simba/* branches to keep repo clean</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/repos</code><button class="copy-btn" data-copy="/repos" title="Copy">⎘</button></div></td><td class="cmd-desc">List all repositories for the configured GitHub owner</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/analyze owner/repo</code><button class="copy-btn" data-copy="/analyze owner/repo" title="Copy">⎘</button></div></td><td class="cmd-desc">Inspect repo metadata, structure, and quality signals</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/improve owner/repo</code><button class="copy-btn" data-copy="/improve owner/repo" title="Copy">⎘</button></div></td><td class="cmd-desc">Full Simba pipeline: audit → generate → push branch → open PR</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/task repo: owner/repo<br/>mode: codex<br/>task: what to do</code><button class="copy-btn" data-copy="/task repo: owner/repo&#10;mode: codex&#10;task: what to do" title="Copy">⎘</button></div></td><td class="cmd-desc">Structured YAML-style task targeting a specific repo</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/resume</code><button class="copy-btn" data-copy="/resume" title="Copy">⎘</button></div></td><td class="cmd-desc">Re-run the last failed task from its checkpoint</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/branches owner/repo</code><button class="copy-btn" data-copy="/branches owner/repo" title="Copy">⎘</button></div></td><td class="cmd-desc">List all simba/* branches in the repo</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/cleanup owner/repo</code><button class="copy-btn" data-copy="/cleanup owner/repo" title="Copy">⎘</button></div></td><td class="cmd-desc">Delete stale simba/* branches to keep repo clean</td></tr>
           </tbody>
         </table>
       </div>
@@ -873,15 +916,13 @@ section{position:relative;z-index:10}
         </div>
         <table class="cmd-table">
           <tbody>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/registry</code><button class="copy-btn" data-copy="/registry" title="Copy command">⎘</button></div></td><td class="cmd-desc">Scan and list live tools from decide.engine-tools</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/gaps [category]</code><button class="copy-btn" data-copy="/gaps [category]" title="Copy command">⎘</button></div></td><td class="cmd-desc">Show tools missing from the live catalog vs the spec</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/catalog</code><button class="copy-btn" data-copy="/catalog" title="Copy command">⎘</button></div></td><td class="cmd-desc">Show the full local tool catalog with statuses</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/generate [category]</code><button class="copy-btn" data-copy="/generate [category]" title="Copy command">⎘</button></div></td><td class="cmd-desc">Generate an engine-tool task list for a category</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/queue</code><button class="copy-btn" data-copy="/queue" title="Copy command">⎘</button></div></td><td class="cmd-desc">Show current task queue and position</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/queue clear</code><button class="copy-btn" data-copy="/queue clear" title="Copy command">⎘</button></div></td><td class="cmd-desc">Reset the task queue</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/loop start [dry|live]</code><button class="copy-btn" data-copy="/loop start [dry|live]" title="Copy command">⎘</button></div></td><td class="cmd-desc">Start continuous execution loop in dry-run or live mode</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/loop stop</code><button class="copy-btn" data-copy="/loop stop" title="Copy command">⎘</button></div></td><td class="cmd-desc">Gracefully stop the loop after the current task finishes</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/loop status</code><button class="copy-btn" data-copy="/loop status" title="Copy command">⎘</button></div></td><td class="cmd-desc">Show current loop state and last completed task</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/registry</code><button class="copy-btn" data-copy="/registry" title="Copy">⎘</button></div></td><td class="cmd-desc">Scan and list live tools from decide.engine-tools</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/gaps [category]</code><button class="copy-btn" data-copy="/gaps" title="Copy">⎘</button></div></td><td class="cmd-desc">Show tools missing from the live catalog vs the spec</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/catalog</code><button class="copy-btn" data-copy="/catalog" title="Copy">⎘</button></div></td><td class="cmd-desc">Show the full local tool catalog with statuses</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/generate [category]</code><button class="copy-btn" data-copy="/generate" title="Copy">⎘</button></div></td><td class="cmd-desc">Generate an engine-tool task list for a category</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/queue</code><button class="copy-btn" data-copy="/queue" title="Copy">⎘</button></div></td><td class="cmd-desc">Show current task queue and position</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/loop start [dry|live]</code><button class="copy-btn" data-copy="/loop start dry" title="Copy">⎘</button></div></td><td class="cmd-desc">Start continuous execution loop in dry-run or live mode</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/loop stop</code><button class="copy-btn" data-copy="/loop stop" title="Copy">⎘</button></div></td><td class="cmd-desc">Gracefully stop the loop after the current task finishes</td></tr>
           </tbody>
         </table>
       </div>
@@ -894,11 +935,11 @@ section{position:relative;z-index:10}
         </div>
         <table class="cmd-table">
           <tbody>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/status</code><button class="copy-btn" data-copy="/status" title="Copy command">⎘</button></div></td><td class="cmd-desc">Show current task status and progress</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/history</code><button class="copy-btn" data-copy="/history" title="Copy command">⎘</button></div></td><td class="cmd-desc">View recent task history with outcomes</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/logs [n]</code><button class="copy-btn" data-copy="/logs [n]" title="Copy command">⎘</button></div></td><td class="cmd-desc">Show last n log entries for debugging</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/cancel</code><button class="copy-btn" data-copy="/cancel" title="Copy command">⎘</button></div></td><td class="cmd-desc">Cancel the currently running task</td></tr>
-            <tr><td><div class="cmd-cell"><code class="cmd-code">/help</code><button class="copy-btn" data-copy="/help" title="Copy command">⎘</button></div></td><td class="cmd-desc">Show all available commands with descriptions</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/status</code><button class="copy-btn" data-copy="/status" title="Copy">⎘</button></div></td><td class="cmd-desc">Show current task status and progress</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/history</code><button class="copy-btn" data-copy="/history" title="Copy">⎘</button></div></td><td class="cmd-desc">View recent task history with outcomes</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/logs [n]</code><button class="copy-btn" data-copy="/logs 20" title="Copy">⎘</button></div></td><td class="cmd-desc">Show last n log entries for debugging</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/cancel</code><button class="copy-btn" data-copy="/cancel" title="Copy">⎘</button></div></td><td class="cmd-desc">Cancel the currently running task</td></tr>
+            <tr><td><div class="cmd-cell"><code class="cmd-code">/help</code><button class="copy-btn" data-copy="/help" title="Copy">⎘</button></div></td><td class="cmd-desc">Show all available commands with descriptions</td></tr>
           </tbody>
         </table>
       </div>
@@ -912,15 +953,14 @@ section{position:relative;z-index:10}
   <div class="container">
     <div class="section-eye">architecture</div>
     <h2 class="section-h2">How it <em>works.</em></h2>
-    <p class="section-sub" style="margin-bottom:2.5rem">Polling-based, stateful, dual-pipeline. Simba v2 engine under the hood.</p>
+    <p class="section-sub" style="margin-bottom:2.5rem">Polling-based, stateful, multi-pipeline. Memory and skills layer added over Simba v2.</p>
     <div class="arch-wrap reveal">
       <pre class="arch-pre">
 <span class="hl">Telegram (polling)</span>
     │
     ▼
 <span class="hl2">telegram-bot.js</span>
-  <span class="dim">- webhook drain on startup</span>
-  <span class="dim">- 409 conflict auto-retry (up to 60s)</span>
+  <span class="dim">- webhook drain + 409 conflict auto-retry (up to 60s)</span>
   <span class="dim">- message + callback_query routing</span>
     │
     ▼
@@ -928,9 +968,22 @@ section{position:relative;z-index:10}
   <span class="dim">- admin whitelist check</span>
   <span class="dim">- routes all commands</span>
     │
+    ├── <span class="hl">/remember</span> · <span class="hl">/recall</span> · <span class="hl">/forget</span>
+    │      ▼
+    │   <span class="hl4">memory.js</span> <span class="dim">:: MemoryManager</span>
+    │     <span class="hl3">persist facts to bot-state.json[memory{}]</span>
+    │
+    ├── <span class="hl">/skill</span> define · run · list · delete
+    │      ▼
+    │   <span class="hl4">skills.js</span> <span class="dim">:: SkillsManager</span>
+    │     <span class="hl3">built-in: readme-gen · sql-migration · tool-spec</span>
+    │     <span class="dim">custom skills in bot-state.json[skills{}]</span>
+    │     <span class="dim">invoke → builds description → runUserPipeline()</span>
+    │
     ├── <span class="hl">/task</span> (plain description)
     │      ▼
     │   <span class="hl2">execution-pipeline.js</span> <span class="dim">:: runUserPipeline()</span>
+    │     <span class="dim">↳ injects memory context before GENERATE stage</span>
     │     <span class="hl3">PLAN → GENERATE (Antigravity/Gemini) → ARTIFACT → send file</span>
     │
     ├── <span class="hl">/improve</span>, <span class="hl">/task</span> (with repo:)
@@ -938,23 +991,17 @@ section{position:relative;z-index:10}
     │   <span class="hl2">execution-pipeline.js</span> <span class="dim">:: runGitHubPipeline()</span>
     │     <span class="hl3">PLAN → AUDIT → GENERATE → ARTIFACTS → PUSH → PR</span>
     │
-    ├── <span class="hl">/loop start</span>
-    │      ▼
-    │   <span class="hl2">task-loop.js</span> <span class="dim">:: startLoop()</span>
-    │     <span class="dim">continuous: generateNextTask → runGitHubPipeline → repeat</span>
-    │
-    └── <span class="hl">/registry</span>, <span class="hl">/gaps</span>, <span class="hl">/generate</span>
+    └── <span class="hl">/loop start</span>
            ▼
-        <span class="hl2">engine-bridge.js</span> + <span class="hl2">task-generator.js</span>
-          <span class="dim">- fetches live tool manifest</span>
-          <span class="dim">- discovers missing tools vs catalog</span>
-          <span class="dim">- builds engine-aware task descriptions</span>
+        <span class="hl2">task-loop.js</span> <span class="dim">:: startLoop()</span>
+          <span class="dim">continuous: generateNextTask → runGitHubPipeline → repeat</span>
 
-<span class="hl4">state-engine.js</span>    <span class="dim">— file-based state, write lock, corrupt recovery</span>
+<span class="hl4">state-engine.js</span>    <span class="dim">— file-based state + memory{} + skills{} fields</span>
+<span class="hl4">memory.js</span>          <span class="dim">— MemoryManager · per-user key/value · context injection</span>
+<span class="hl4">skills.js</span>          <span class="dim">— SkillsManager · 3 built-ins · custom templates · {{input}}</span>
 <span class="hl4">github.js</span>          <span class="dim">— GitHub REST API (repos, branches, commits, PRs)</span>
 <span class="hl4">templates.js</span>       <span class="dim">— Codex prompt + repair prompt builders</span>
 <span class="hl4">artifacts.js</span>       <span class="dim">— Disk artifact writer + changes.patch generator</span>
-<span class="hl4">file-exporter.js</span>   <span class="dim">— Telegram sendMessage (split) + sendDocument</span>
 <span class="hl4">task-parser.js</span>     <span class="dim">— YAML/JSON/inline task parser + sanitization</span>
 </pre>
     </div>
@@ -966,17 +1013,21 @@ section{position:relative;z-index:10}
   <div class="container">
     <div class="section-eye">AI backend</div>
     <h2 class="section-h2">Antigravity<br><em>Integration.</em></h2>
-    <p class="section-sub" style="margin-bottom:2.5rem">This bot runs on Antigravity — an abstraction over Gemini's Generative Language API with structured prompting and high token limits.</p>
+    <p class="section-sub" style="margin-bottom:2.5rem">GN8R runs on Antigravity — an abstraction over Gemini's Generative Language API with structured prompting, memory injection, and high token limits.</p>
     <div class="ag-wrap reveal">
       <div class="ag-l">
         <div class="ag-specs">
           <div class="ag-spec">
             <span class="ag-spec-key">Model</span>
-            <span class="ag-spec-val">gemini-2.5-pro-preview-05-06</span>
+            <span class="ag-spec-val">gemini-2.5-flash</span>
           </div>
           <div class="ag-spec">
             <span class="ag-spec-key">API</span>
             <span class="ag-spec-val">generativelanguage.googleapis.com/v1beta</span>
+          </div>
+          <div class="ag-spec">
+            <span class="ag-spec-key">Auth</span>
+            <span class="ag-spec-val">x-goog-api-key header</span>
           </div>
           <div class="ag-spec">
             <span class="ag-spec-key">Max tokens</span>
@@ -987,10 +1038,6 @@ section{position:relative;z-index:10}
             <span class="ag-spec-val">system_instruction field</span>
           </div>
           <div class="ag-spec">
-            <span class="ag-spec-key">Used for</span>
-            <span class="ag-spec-val">Planning · Generation · Code</span>
-          </div>
-          <div class="ag-spec">
             <span class="ag-spec-key">Override</span>
             <span class="ag-spec-val">GEMINI_MODEL env var</span>
           </div>
@@ -999,12 +1046,13 @@ section{position:relative;z-index:10}
       <div class="ag-model-card">
         <div class="ag-model-icon">✨</div>
         <div class="ag-model-name">Antigravity</div>
-        <div class="ag-model-id">gemini-2.5-pro-preview-05-06</div>
+        <div class="ag-model-id">gemini-2.5-flash</div>
         <div class="ag-model-chips">
           <span class="ag-chip">Task Planning</span>
           <span class="ag-chip">File Generation</span>
           <span class="ag-chip">Code Generation</span>
-          <span class="ag-chip">Structured Prompting</span>
+          <span class="ag-chip">Memory Injection</span>
+          <span class="ag-chip">Skill Prompts</span>
           <span class="ag-chip">8192 tokens</span>
         </div>
       </div>
@@ -1019,7 +1067,7 @@ section{position:relative;z-index:10}
     <h2 class="section-h2">Get running<br><em>in minutes.</em></h2>
     <div class="setup-grid" style="margin-top:2.5rem">
       <div class="setup-info">
-        <p class="section-sub">Clone, install, configure two env vars, and start. GitHub features are opt-in.</p>
+        <p class="section-sub">Clone, install, configure two env vars, and start. Memory and skills are automatic — no config needed.</p>
         <div class="code-block reveal" style="margin-top:1.5rem">
           <div class="code-hd"><span class="code-lang">bash · quick start</span></div>
           <div class="code-body">
@@ -1076,7 +1124,7 @@ section{position:relative;z-index:10}
             </div>
             <div class="env-row">
               <span class="env-key">GEMINI_MODEL</span>
-              <span class="env-val">gemini-2.5-pro-preview-05-06 <span class="env-comment"># optional override</span></span>
+              <span class="env-val">gemini-2.5-flash <span class="env-comment"># optional override</span></span>
             </div>
           </div>
         </div>
@@ -1090,13 +1138,25 @@ section{position:relative;z-index:10}
   <div class="container">
     <div class="section-eye">key features</div>
     <h2 class="section-h2">What makes<br><em>GN8R different.</em></h2>
-    <p class="section-sub" style="margin-bottom:3rem">Every feature ships from Simba v2 or the new dual-pipeline routing layer.</p>
+    <p class="section-sub" style="margin-bottom:3rem">Every feature ships from Simba v2, the new dual-pipeline layer, or the memory + skills update.</p>
 
     <div class="features-grid" style="margin-bottom:3rem">
+      <div class="feat-card feat-new reveal">
+        <span class="feat-new-badge">New</span>
+        <div class="feat-icon gold-bg">🧠</div>
+        <div class="feat-name">Persistent Memory</div>
+        <div class="feat-desc">Store facts once with /remember — GN8R injects them into every future /task automatically. No more repeating your stack, preferences, or context.</div>
+      </div>
+      <div class="feat-card feat-new reveal">
+        <span class="feat-new-badge">New</span>
+        <div class="feat-icon purple-bg">⚡</div>
+        <div class="feat-name">Skills Layer</div>
+        <div class="feat-desc">3 built-in skills (readme-gen, sql-migration, tool-spec) plus unlimited custom templates. Define once with /skill define, run anywhere with {{input}}.</div>
+      </div>
       <div class="feat-card reveal">
         <div class="feat-icon">📎</div>
         <div class="feat-name">Real File Upload</div>
-        <div class="feat-desc">Uses Telegram's sendDocument API to deliver actual files — not code blocks pasted in chat. HTML, Python, Markdown, JSON, CSV, SQL.</div>
+        <div class="feat-desc">Uses Telegram's sendDocument API to deliver actual files — not code blocks in chat. HTML, Python, Markdown, JSON, CSV, SQL, TypeScript.</div>
       </div>
       <div class="feat-card reveal">
         <div class="feat-icon">🔀</div>
@@ -1104,24 +1164,14 @@ section{position:relative;z-index:10}
         <div class="feat-desc">Plain /task descriptions route to the user pipeline. Tasks with repo: field auto-route to the GitHub pipeline. One command, two outcomes.</div>
       </div>
       <div class="feat-card reveal">
-        <div class="feat-icon">🔁</div>
-        <div class="feat-name">409 Conflict Auto-Retry</div>
-        <div class="feat-desc">Handles Telegram's polling conflicts gracefully — drains webhooks on startup and retries up to 60 seconds before failing cleanly.</div>
-      </div>
-      <div class="feat-card reveal">
         <div class="feat-icon">🔒</div>
         <div class="feat-name">File-Based State + Write Lock</div>
-        <div class="feat-desc">State persists to disk with write locking and corrupt recovery. Tasks survive bot restarts and can be resumed with /resume.</div>
+        <div class="feat-desc">State persists to disk with write locking and corrupt recovery. Memory and skills stored in the same JSON — survives bot restarts.</div>
       </div>
       <div class="feat-card reveal">
         <div class="feat-icon">🔁</div>
         <div class="feat-name">Continuous Task Loop</div>
         <div class="feat-desc">/loop start runs a continuous execution loop — generates the next task, runs the pipeline, repeats. Dry-run and live modes supported.</div>
-      </div>
-      <div class="feat-card reveal">
-        <div class="feat-icon">🧹</div>
-        <div class="feat-name">Safe JSON + YAML Parsing</div>
-        <div class="feat-desc">safeJsonParse with JSON repair, zero-width character removal via sanitizeTelegram, and full YAML/JSON/inline task parser.</div>
       </div>
     </div>
 
@@ -1135,19 +1185,17 @@ section{position:relative;z-index:10}
           </tr>
         </thead>
         <tbody>
-          <tr><td>Antigravity (Gemini) AI backend</td><td>Core engine</td><td><span class="kf-badge core">Core</span></td></tr>
-          <tr><td>sendDocument (real file upload)</td><td>New in this release</td><td><span class="kf-badge new">New</span></td></tr>
-          <tr><td>User-facing /task without repo field</td><td>New in this release</td><td><span class="kf-badge new">New</span></td></tr>
-          <tr><td>Dual pipeline routing</td><td>New in this release</td><td><span class="kf-badge new">New</span></td></tr>
-          <tr><td>409 conflict auto-retry</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
-          <tr><td>Webhook drain on startup</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
-          <tr><td>Inline keyboard callbacks (/improve)</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
-          <tr><td>File-based state + write lock</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
-          <tr><td>sanitizeTelegram (zero-width char removal)</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
-          <tr><td>safeJsonParse + JSON repair</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
-          <tr><td>YAML/JSON/inline task parser</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
+          <tr><td>Persistent user memory (/remember · /recall · /forget)</td><td>Memory update</td><td><span class="kf-badge new">New</span></td></tr>
+          <tr><td>Skills layer — built-in + custom (/skill)</td><td>Skills update</td><td><span class="kf-badge new">New</span></td></tr>
+          <tr><td>Memory context auto-injected into /task generation</td><td>Memory update</td><td><span class="kf-badge new">New</span></td></tr>
+          <tr><td>Antigravity (Gemini 2.5 Flash) AI backend</td><td>Core engine</td><td><span class="kf-badge core">Core</span></td></tr>
+          <tr><td>sendDocument (real file upload)</td><td>This release</td><td><span class="kf-badge new">New</span></td></tr>
+          <tr><td>User-facing /task without repo field</td><td>This release</td><td><span class="kf-badge new">New</span></td></tr>
+          <tr><td>Dual pipeline routing</td><td>This release</td><td><span class="kf-badge new">New</span></td></tr>
+          <tr><td>409 conflict auto-retry + webhook drain</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
+          <tr><td>File-based state + write lock + corrupt recovery</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
+          <tr><td>YAML/JSON/inline task parser + sanitizeTelegram</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
           <tr><td>Full GitHub API (branches, commits, PRs)</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
-          <tr><td>changes.patch artifact</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
           <tr><td>Task loop (/loop start/stop/status)</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
           <tr><td>Tool catalog + gap discovery</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
           <tr><td>Admin chat ID whitelist</td><td>Simba v2</td><td><span class="kf-badge simba">Simba v2</span></td></tr>
@@ -1161,7 +1209,7 @@ section{position:relative;z-index:10}
 <footer id="footer">
   <div class="footer-inner">
     <div class="footer-brand">GN<span>8</span>R</div>
-    <div class="footer-tagline">// AI COMMAND CENTER · ANTIGRAVITY EDITION · MIT LICENSE</div>
+    <div class="footer-tagline">// AI COMMAND CENTER · MEMORY + SKILLS EDITION · MIT LICENSE</div>
     <div class="footer-acts">
       <a class="btn-primary" href="https://t.me/GN8RBot" target="_blank" rel="noopener">✈ Open @GN8RBot</a>
       <a class="btn-secondary" href="https://via-decide.github.io/decide.engine-tools/" target="_blank" rel="noopener">⚙️ engine-tools</a>
@@ -1170,7 +1218,7 @@ section{position:relative;z-index:10}
       <a href="https://t.me/GN8RBot" target="_blank" rel="noopener">Telegram</a>
       <a href="https://github.com/via-decide" target="_blank" rel="noopener">GitHub</a>
       <a href="https://viadecide.com" target="_blank" rel="noopener">ViaDecide</a>
-      <span>· Powered by Gemini 2.5 Pro</span>
+      <span>· Powered by Gemini 2.5 Flash</span>
       <span>· MIT License</span>
     </div>
   </div>
@@ -1186,11 +1234,9 @@ function mkP(){return{x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.2+.3
 for(let i=0;i<70;i++)pts.push(mkP());
 function drawBg(){
   ctx.clearRect(0,0,W,H);
-  /* grid */
   ctx.strokeStyle='rgba(0,212,255,0.025)';ctx.lineWidth=1;
   for(let x=0;x<W;x+=80){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
   for(let y=0;y<H;y+=80){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
-  /* particles */
   pts.forEach(p=>{
     p.x+=p.vx;p.y+=p.vy;
     if(p.x<0||p.x>W)p.vx*=-1;
@@ -1198,7 +1244,6 @@ function drawBg(){
     ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
     ctx.fillStyle=`rgba(0,212,255,${p.o})`;ctx.fill();
   });
-  /* connections */
   for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
     const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);
     if(d<100){ctx.beginPath();ctx.strokeStyle=`rgba(0,212,255,${.05*(1-d/100)})`;ctx.lineWidth=.5;ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.stroke();}
@@ -1220,29 +1265,24 @@ const io=new IntersectionObserver(entries=>{
   entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}});
 },{threshold:0,rootMargin:'0px 0px -60px 0px'});
 document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
-
-/* mobile fallback */
 if(window.matchMedia('(hover:none),(pointer:coarse)').matches){
   setTimeout(()=>document.querySelectorAll('.reveal').forEach(el=>el.classList.add('vis')),400);
 }
-</script>
-
-<script>
 
 /* QUICK TRY CHIPS */
 document.querySelectorAll('.try-chip').forEach(chip => {
   chip.addEventListener('click', () => {
     const text = chip.dataset.try;
     if (!text) return;
-    const copy = t => {
+    const done = () => {
       chip.classList.add('chip-copied');
       setTimeout(() => chip.classList.remove('chip-copied'), 1800);
     };
-    navigator.clipboard.writeText(text).then(copy).catch(() => {
+    navigator.clipboard.writeText(text).then(done).catch(() => {
       const ta = document.createElement('textarea');
       ta.value = text; ta.style.cssText = 'position:fixed;opacity:0';
       document.body.appendChild(ta); ta.select();
-      document.execCommand('copy'); document.body.removeChild(ta); copy();
+      document.execCommand('copy'); document.body.removeChild(ta); done();
     });
   });
 });
@@ -1253,19 +1293,16 @@ document.addEventListener('click', function(e) {
   if (!btn) return;
   const text = btn.dataset.copy || btn.closest('.cmd-cell')?.querySelector('.cmd-code')?.innerText || '';
   if (!text) return;
-  navigator.clipboard.writeText(text).then(() => {
+  const done = () => {
     btn.textContent = '✓';
     btn.classList.add('copied');
     setTimeout(() => { btn.textContent = '⎘'; btn.classList.remove('copied'); }, 1800);
-  }).catch(() => {
-    // fallback
+  };
+  navigator.clipboard.writeText(text).then(done).catch(() => {
     const ta = document.createElement('textarea');
     ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
     document.body.appendChild(ta); ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    btn.textContent = '✓'; btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = '⎘'; btn.classList.remove('copied'); }, 1800);
+    document.execCommand('copy'); document.body.removeChild(ta); done();
   });
 });
 </script>
