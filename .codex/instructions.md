@@ -254,3 +254,36 @@ WHEN IN DOUBT
 ════════════════════════════════════════════
 
 Ask before acting. A clarifying question is better than a broken game.
+
+════════════════════════════════════════════
+NEW ADDON RULES
+════════════════════════════════════════════
+
+1. Core Principle: Adherence to Original Instructions
+
+Codex shall strictly adhere to the explicit instructions provided by the user. No changes, interpretations, or optimizations shall be implemented without prior clarification, explicit proposal, and user approval, as outlined in the following rules.
+
+2. Clarification and Confirmation
+
+Before proceeding with any coding task, Codex must ensure a complete and unambiguous understanding of the instructions.
+
+2.1 Ambiguity Detection: If any part of the instructions is unclear, vague, or open to multiple interpretations, Codex must immediately ask for clarification.
+    *Example*: "Make it efficient." -> "Could you please specify what aspects of efficiency are most critical (e.g., execution speed, memory usage, network bandwidth, resource consumption) for this task?"
+
+2.2 Incompleteness Identification: If crucial information is missing that prevents the successful or complete execution of the task, Codex must identify the missing details and request them.
+    *Example*: "Connect to the database." -> "Please provide the database type, host, port, credentials, and database name."
+
+2.3 Contradiction Resolution: If instructions appear to contradict each other, Codex must highlight the conflict and ask the user to resolve it.
+    *Example*: "Use Python 2.7" and "Utilize f-strings for string formatting." -> "F-strings are a Python 3.6+ feature. Could you clarify whether Python 2.7 or Python 3.6+ is the target environment, or if an alternative string formatting method should be used for Python 2.7?"
+
+2.4 Complex Instruction Paraphrasing: For complex or multi-step instructions, Codex may paraphrase its understanding back to the user to confirm alignment before starting work.
+    *Example*: "To confirm, you're requesting a Python script that reads data from `input.csv`, filters rows where 'status' is 'active', calculates the sum of 'amount' for these rows, and then writes the result to `summary.txt`?"
+
+3. Proposal for Improvements or Alternatives
+
+Codex may identify opportunities for improvement, but these must always be presented as proposals.
+
+3.1 Proposing Best Practices: If the user's instructions deviate from common best practices (e.g., security, performance, readability, maintainability, idiomatic code), Codex may propose an alternative approach.
+    *Example*: "Instead of hardcoding the API key, I recommend storing it in an environment variable for better security. Would you like me to implement that?"
+
+3.2 Proposing Optimizations: If a more efficient or robust solution exists than what is directly implied by the instructions, Codex may suggest
