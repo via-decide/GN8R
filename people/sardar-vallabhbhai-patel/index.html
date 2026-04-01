@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ViaLogic | Sardar Vallabhbhai Patel</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <script src="../../daxini-renderer.js"></script>
+    <style>
+        body {
+            margin: 0; padding: 0; background-color: #050a14; overflow: hidden;
+            color: white; font-family: 'JetBrains Mono', monospace;
+            user-select: none;
+        }
+        canvas { display: block; }
+        
+        #daxini-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            width: 90%;
+            max-width: 500px;
+            pointer-events: none;
+        }
+
+        #daxini-container * { pointer-events: auto; }
+
+        #nav-hint {
+            position: absolute; top: 30px; right: 30px;
+            color: rgba(0, 229, 255, 0.4); font-size: 12px; letter-spacing: 2px;
+            text-transform: uppercase; cursor: pointer;
+            z-index: 1000; text-align: right;
+        }
+        .vialogic-logo { color: #00e5ff; font-weight: bold; font-size: 16px; margin-bottom: 5px; letter-spacing: 3px; }
+
+        #act-indicator {
+            position: absolute; top: 30px; left: 30px;
+            color: #ff671f; font-size: 14px; font-weight: 700; letter-spacing: 3px;
+            text-transform: uppercase; z-index: 1000;
+        }
+
+        @media (max-width: 700px) {
+            #act-indicator { top: 20px; left: 20px; font-size: 11px; }
+            #nav-hint { top: 20px; right: 20px; font-size: 10px; }
+        }
+    </style>
+</head>
+<body onclick="nextScreen()">
+
+    <div id="nav-hint">
+        <a href="../../index.html" style="text-decoration:none"><div class="vialogic-logo">← VIALOGIC</div></a>
+        Tap anywhere to advance ➔
+    </div>
+
+    <div id="act-indicator">ACT I: INITIALIZATION</div>
+
+    <div id="daxini-container"></div>
+
+    <script>
+    let time = 0;
+    let state = 0;
+    let isTransitioning = false;
+    let fadeAlpha = 0;
+    let fadeDirection = 0;
+    let targetState = 0;
+    const FADE_SPEED = 14;
+    const TOTAL_SCREENS = 10;
+
+    /* ── Content Data (Injected by VisualForge) ────────────────────── */
+    const PERSONA = {"id":"sardar-vallabhbhai-patel","name":"Sardar Vallabhbhai Patel","title":"Revolution | Modern","summary":"Sovereign UI profile for Sardar Vallabhbhai Patel — part of the ViaLogic population cluster.","design_tokens":{"cyan":"#00e5ff","saffron":"#ff671f"}};
+    const SCENARIOS = [{"act":"Act I: THE IRON MAN","title":"Political Integration","sub":"Merging 565 Princely States","desc":"Patel achieved the impossible: the unification of a fragmented subcontinent into a single, cohesive nation. He used a mix of diplomacy and firm resolve.","insight":"Faith is of no avail in absence of strength. Faith and strength, both are essential.","logic_result":"System status: Unified. Integration integrity: 100%.","color":"#2196f3"}];
+
+    /* ── Setup ───────────────────────────────────────────────────── */
+    function setup() {
+        createCanvas(windowWidth, windowHeight);
+        updateUI();
+    }
+
+    function windowResized() { resizeCanvas(windowWidth, windowHeight); }
+
+    function nextScreen() {
+        if (isTransitioning) return;
+        isTransitioning = true;
+        fadeDirection = 1;
+        targetState = (state + 1) % TOTAL_SCREENS;
+        
+        document.getElementById('daxini-container').style.opacity = 0;
+        document.getElementById('act-indicator').style.opacity = 0;
+        document.getElementById('nav-hint').style.opacity = 0;
+    }
+
+    function updateUI() {
+        const scenario = SCENARIOS[state];
+        const container = document.getElementById('daxini-container');
+        container.innerHTML = '';
+        
+        // Render Using DaxiniRenderer
+        const card = window.DaxiniRenderer.renderCard(PERSONA, scenario.desc);
+        
+        // Customize card for current screen
+        const nameEl = card.querySelector('.daxini-card__name');
+        const titleEl = card.querySelector('.daxini-card__title');
+        const outputEl = card.querySelector('[data-logic-output]');
+        
+        nameEl.innerText = scenario.title;
+        titleEl.innerText = scenario.sub;
+        outputEl.innerText = scenario.insight;
+        
+        container.appendChild(card);
+        
+        // Update Act Indicator
+        const actEl = document.getElementById('act-indicator');
+        actEl.innerText = scenario.act;
+        actEl.style.color = scenario.color || '#ff671f';
+        
+        // Add Logic Trigger
+        const btn = card.querySelector('[data-run-logic]');
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            triggerLogic();
+        });
+    }
+
+    function triggerLogic() {
+        const output = document.querySelector('[data-logic-output]');
+        output.innerText = "Executing quantum logic...\\n" + SCENARIOS[state].logic_result;
+        // Visual trigger for p5.js
+        window.logicTriggered = true;
+        setTimeout(() => { window.logicTriggered = false; }, 1000);
+    }
+
+    /* ── Draw loop ───────────────────────────────────────────────── */
+    function draw() {
+        background(5, 10, 20);
+        
+        // Injected p5.js Logic (VisualForge)
+        
+            time += 0.05;
+            let scale = getScale();
+            // Iron Grids (Unification)
+            stroke(33, 150, 243, 40); strokeWeight(1);
+            for(let i=0; i<width; i+=50*scale) line(i, 0, i, height);
+            for(let i=0; i<height; i+=50*scale) line(0, i, width, i);
+            // Unified Core
+            fill(33, 150, 243, 150); noStroke();
+            ellipse(width/2, height/2, (100 + sin(time)*20) * scale);
+        
+
+        // Fade overlay
+        if (isTransitioning) {
+            fadeAlpha += FADE_SPEED * fadeDirection;
+            if (fadeDirection === 1 && fadeAlpha >= 255) {
+                fadeAlpha = 255; fadeDirection = -1;
+                state = targetState; time = 0;
+                updateUI();
+                document.getElementById('daxini-container').style.opacity = 1;
+                document.getElementById('act-indicator').style.opacity = 1;
+                document.getElementById('nav-hint').style.opacity = 1;
+            } else if (fadeDirection === -1 && fadeAlpha <= 0) {
+                fadeAlpha = 0; isTransitioning = false;
+            }
+            push(); fill(5, 10, 20, fadeAlpha); noStroke(); rect(0, 0, width, height); pop();
+        }
+    }
+
+    function getScale() { return min(1, width / 800); }
+    </script>
+</body>
+</html>
