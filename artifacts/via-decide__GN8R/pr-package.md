@@ -1,9 +1,9 @@
-Branch: simba/overhaul-the-core-code-generation-pipeline-to-co
-Title: Overhaul the core code generation pipeline to completely bypass the C...
+Branch: simba/upgrade-the-telegram-message-listener-to-support
+Title: Upgrade the Telegram message listener to support Multimodal (Vision) ...
 
 ## Summary
 - Repo orchestration task for via-decide/GN8R
-- Goal: Transform GN8R from a simple relay bot into a direct, long-context autonomous software engineer that takes a Telegram message, synthesizes entire multi-file architectures via Gemini, and ships the PR directly to the repo.
+- Goal: Allow the user to send UI sketches, diagrams, or screenshots directly via Telegram, enabling GN8R to autonomously convert physical images into deployed code architecture in real-time.
 
 ## Testing Checklist
 - [ ] Run unit/integration tests
