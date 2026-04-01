@@ -4,7 +4,7 @@ TARGET
 Validate and repair only the files touched by the previous implementation.
 
 TASK
-Overhaul the core code generation pipeline to completely bypass the Codex intermediate layer. The bot must now use the native Gemini API directly to generate long-form code, and then use its existing GitHub integration to push the PR.
+Upgrade the GN8R synthesis pipeline with 'Synapse'-a repo-aware context fetching engine.
 
 RULES
 1. Audit touched files first and identify regressions.
