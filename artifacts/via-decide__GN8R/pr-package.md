@@ -1,9 +1,9 @@
-Branch: simba/overhaul-the-core-code-generation-pipeline-to-co
-Title: Overhaul the core code generation pipeline to completely bypass the C...
+Branch: simba/upgrade-the-gn8r-synthesis-pipeline-with-synapse
+Title: Upgrade the GN8R synthesis pipeline with 'Synapse'-a repo-aware conte...
 
 ## Summary
 - Repo orchestration task for via-decide/GN8R
-- Goal: Transform GN8R from a simple relay bot into a direct, long-context autonomous software engineer that takes a Telegram message, synthesizes entire multi-file architectures via Gemini, and ships the PR directly to the repo.
+- Goal: Transform GN8R into a context-aware codebase editor that automatically reads the user's live files before generating code, ensuring edits are perfectly integrated into the existing architecture rather than hallucinated from scratch.
 
 ## Testing Checklist
 - [ ] Run unit/integration tests
