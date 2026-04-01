@@ -4,7 +4,7 @@ TARGET
 Validate and repair only the files touched by the previous implementation.
 
 TASK
-Upgrade the Telegram message listener to support Multimodal (Audio) payloads for native voice-to-code generation.
+Upgrade the Telegram notification system into an interactive PR Controller ('Commander').
 
 RULES
 1. Audit touched files first and identify regressions.
