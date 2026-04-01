@@ -3,12 +3,13 @@
  */
 
 import {
-  buildEngineAwareTask, discoverMissingTools,
-  fetchAllRegisteredTools, resolveToolCategory,
-  formatRegistryReport, formatMissingToolsReport,
+  buildEngineAwareTask,
+  resolveToolCategory,
+  formatRegistryReport,
+  formatMissingToolsReport,
 } from './engine-bridge.js';
 
-export { discoverMissingTools, fetchAllRegisteredTools, formatRegistryReport, formatMissingToolsReport };
+export { formatRegistryReport, formatMissingToolsReport };
 
 export const TOOL_CATALOG = {
   games: [
@@ -52,19 +53,45 @@ export function getCatalogSummary() {
 
 export async function generateTasks(config, options = {}) {
   const { categories = null, maxTasks = 20, excludeIds = new Set() } = options;
+  const { fetchToolIndex } = await import('./engine-bridge.js');
+  
+  // 1. Fetch live tools from manifest
+  const liveTools = await fetchToolIndex(config);
+  
+  // 2. Map live tools by category
+  const catalog = {};
+  for (const tool of liveTools) {
+    const cat = tool.category || 'misc';
+    if (categories && !categories.includes(cat)) continue;
+    if (excludeIds.has(tool.id)) continue;
+    (catalog[cat] = catalog[cat] || []).push(tool);
+  }
 
-  const catalog = categories
-    ? Object.fromEntries(Object.entries(TOOL_CATALOG).filter(([cat]) => categories.includes(cat)))
-    : TOOL_CATALOG;
-
+  // 3. Flatten into tasks
   const tasks = [];
   for (const [category, tools] of Object.entries(catalog)) {
     for (const tool of tools) {
-      if (excludeIds.has(tool.id)) continue;
       if (tasks.length >= maxTasks) break;
       tasks.push(buildEngineAwareTask({ ...tool, category }));
     }
   }
+
+  // 4. If still have room, add from static catalog (fallback)
+  if (tasks.length < maxTasks) {
+    const staticEntries = categories
+      ? Object.entries(TOOL_CATALOG).filter(([cat]) => categories.includes(cat))
+      : Object.entries(TOOL_CATALOG);
+
+    for (const [category, tools] of staticEntries) {
+      for (const tool of tools) {
+        if (excludeIds.has(tool.id)) continue;
+        if (tasks.some(t => t.metadata?.toolId === tool.id)) continue;
+        if (tasks.length >= maxTasks) break;
+        tasks.push(buildEngineAwareTask({ ...tool, category }));
+      }
+    }
+  }
+
   return tasks;
 }
 
@@ -102,6 +129,20 @@ export function formatTaskListForTelegram(tasks) {
     const short = t.taskDescription?.slice(0, 60) || '';
     return `${i + 1}. [${cat}] ${id}\n   ${short}`;
   }).join('\n');
+}
+
+export function formatToolTable(tools) {
+  if (!tools.length) return 'No tools found.';
+  const lines = ['🛠 *Decide Engine Registry*'];
+  const byCat = {};
+  for (const t of tools) (byCat[t.category] = byCat[t.category] || []).push(t);
+  
+  for (const [cat, list] of Object.entries(byCat).sort()) {
+    lines.push(`\n*${cat.toUpperCase()}* (${list.length})`);
+    list.slice(0, 5).forEach(t => lines.push(`• ${t.id}${t.isEngineTool ? ' 🔧' : ''}`));
+    if (list.length > 5) lines.push(`  ... +${list.length - 5} more`);
+  }
+  return lines.join('\n');
 }
 
 export function formatTaskForTelegram(task) {

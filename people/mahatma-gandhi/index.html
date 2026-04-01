@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ViaLogic | Mahatma Gandhi</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <script src="../../daxini-renderer.js"></script>
+    <style>
+        body {
+            margin: 0; padding: 0; background-color: #050a14; overflow: hidden;
+            color: white; font-family: 'JetBrains Mono', monospace;
+            user-select: none;
+        }
+        canvas { display: block; }
+        
+        #daxini-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            width: 90%;
+            max-width: 500px;
+            pointer-events: none;
+        }
+
+        #daxini-container * { pointer-events: auto; }
+
+        #nav-hint {
+            position: absolute; top: 30px; right: 30px;
+            color: rgba(0, 229, 255, 0.4); font-size: 12px; letter-spacing: 2px;
+            text-transform: uppercase; cursor: pointer;
+            z-index: 1000; text-align: right;
+        }
+        .vialogic-logo { color: #00e5ff; font-weight: bold; font-size: 16px; margin-bottom: 5px; letter-spacing: 3px; }
+
+        #act-indicator {
+            position: absolute; top: 30px; left: 30px;
+            color: #ff671f; font-size: 14px; font-weight: 700; letter-spacing: 3px;
+            text-transform: uppercase; z-index: 1000;
+        }
+
+        @media (max-width: 700px) {
+            #act-indicator { top: 20px; left: 20px; font-size: 11px; }
+            #nav-hint { top: 20px; right: 20px; font-size: 10px; }
+        }
+    </style>
+</head>
+<body onclick="nextScreen()">
+
+    <div id="nav-hint">
+        <a href="../../index.html" style="text-decoration:none"><div class="vialogic-logo">← VIALOGIC</div></a>
+        Tap anywhere to advance ➔
+    </div>
+
+    <div id="act-indicator">ACT I: INITIALIZATION</div>
+
+    <div id="daxini-container"></div>
+
+    <script>
+    let time = 0;
+    let state = 0;
+    let isTransitioning = false;
+    let fadeAlpha = 0;
+    let fadeDirection = 0;
+    let targetState = 0;
+    const FADE_SPEED = 14;
+    const TOTAL_SCREENS = 10;
+
+    /* ── Content Data (Injected by VisualForge) ────────────────────── */
+    const PERSONA = {"id":"mahatma-gandhi","name":"Mahatma Gandhi","title":"Revolution | Modern","summary":"Sovereign UI profile for Mahatma Gandhi — part of the ViaLogic population cluster.","design_tokens":{"cyan":"#00e5ff","saffron":"#ff671f"}};
+    const SCENARIOS = [{"act":"Act I: THE SALT MARCH","title":"Dandi Satyagraha","sub":"March 12, 1930","desc":"Gandhi led a 240-mile march to the Arabian Sea to defy the British salt tax. This non-violent act shook the foundations of the British Empire.","insight":"In a gentle way, you can shake the world.","logic_result":"Satyagraha force: Infinite. Violence detected: 0%.","color":"#ff671f"},{"act":"Act II: QUIT INDIA","title":"The Do or Die Call","sub":"August 8, 1942","desc":"During WWII, Gandhi launched the Quit India Movement, demanding an immediate end to British rule. He gave the nation the mantra: 'Karo ya Maro'.","insight":"Strength does not come from physical capacity. It comes from an indomitable will.","logic_result":"National resolution: Unconditional Independence.","color":"#ffffff"}];
+
+    /* ── Setup ───────────────────────────────────────────────────── */
+    function setup() {
+        createCanvas(windowWidth, windowHeight);
+        updateUI();
+    }
+
+    function windowResized() { resizeCanvas(windowWidth, windowHeight); }
+
+    function nextScreen() {
+        if (isTransitioning) return;
+        isTransitioning = true;
+        fadeDirection = 1;
+        targetState = (state + 1) % TOTAL_SCREENS;
+        
+        document.getElementById('daxini-container').style.opacity = 0;
+        document.getElementById('act-indicator').style.opacity = 0;
+        document.getElementById('nav-hint').style.opacity = 0;
+    }
+
+    function updateUI() {
+        const scenario = SCENARIOS[state];
+        const container = document.getElementById('daxini-container');
+        container.innerHTML = '';
+        
+        // Render Using DaxiniRenderer
+        const card = window.DaxiniRenderer.renderCard(PERSONA, scenario.desc);
+        
+        // Customize card for current screen
+        const nameEl = card.querySelector('.daxini-card__name');
+        const titleEl = card.querySelector('.daxini-card__title');
+        const outputEl = card.querySelector('[data-logic-output]');
+        
+        nameEl.innerText = scenario.title;
+        titleEl.innerText = scenario.sub;
+        outputEl.innerText = scenario.insight;
+        
+        container.appendChild(card);
+        
+        // Update Act Indicator
+        const actEl = document.getElementById('act-indicator');
+        actEl.innerText = scenario.act;
+        actEl.style.color = scenario.color || '#ff671f';
+        
+        // Add Logic Trigger
+        const btn = card.querySelector('[data-run-logic]');
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            triggerLogic();
+        });
+    }
+
+    function triggerLogic() {
+        const output = document.querySelector('[data-logic-output]');
+        output.innerText = "Executing quantum logic...\\n" + SCENARIOS[state].logic_result;
+        // Visual trigger for p5.js
+        window.logicTriggered = true;
+        setTimeout(() => { window.logicTriggered = false; }, 1000);
+    }
+
+    /* ── Draw loop ───────────────────────────────────────────────── */
+    function draw() {
+        background(5, 10, 20);
+        
+        // Injected p5.js Logic (VisualForge)
+        
+            time += 0.02;
+            let scale = getScale();
+            // The Charkha (Spinning Wheel)
+            noFill(); stroke(255, 103, 31, 80); strokeWeight(1.5);
+            ellipse(width/2, height/2, 200 * scale);
+            for(let i=0; i<24; i++) {
+                let a = i * TWO_PI / 24 + time;
+                line(width/2, height/2, width/2 + cos(a) * 100 * scale, height/2 + sin(a) * 100 * scale);
+            }
+            // Salt Grains (Satyagraha)
+            fill(255, 255, 255); noStroke();
+            for(let i=0; i<100; i++) {
+                let x = noise(i, time * 0.1) * width;
+                let y = noise(i + 100, time * 0.1) * height;
+                ellipse(x, y, 2);
+            }
+        
+
+        // Fade overlay
+        if (isTransitioning) {
+            fadeAlpha += FADE_SPEED * fadeDirection;
+            if (fadeDirection === 1 && fadeAlpha >= 255) {
+                fadeAlpha = 255; fadeDirection = -1;
+                state = targetState; time = 0;
+                updateUI();
+                document.getElementById('daxini-container').style.opacity = 1;
+                document.getElementById('act-indicator').style.opacity = 1;
+                document.getElementById('nav-hint').style.opacity = 1;
+            } else if (fadeDirection === -1 && fadeAlpha <= 0) {
+                fadeAlpha = 0; isTransitioning = false;
+            }
+            push(); fill(5, 10, 20, fadeAlpha); noStroke(); rect(0, 0, width, height); pop();
+        }
+    }
+
+    function getScale() { return min(1, width / 800); }
+    </script>
+</body>
+</html>

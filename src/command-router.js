@@ -14,11 +14,23 @@ import { runUserPipeline, runGitHubPipeline, STAGES } from './execution-pipeline
 import { TaskStatus } from './state-engine.js';
 import { formatFileCaption } from './file-exporter.js';
 import { listOwnerRepos, inspectRepository, listRepoBranches, deleteBranch } from './github.js';
-import { generateTasks, generateNextTask, getCatalogSummary, formatTaskListForTelegram, formatTaskForTelegram, TOOL_CATALOG, discoverMissingTools, fetchAllRegisteredTools, formatRegistryReport, formatMissingToolsReport } from './task-generator.js';
+import {
+  generateTasks,
+  generateNextTask,
+  getCatalogSummary,
+  formatTaskListForTelegram,
+  formatToolTable,
+  formatTaskForTelegram,
+  TOOL_CATALOG,
+  formatRegistryReport,
+  formatMissingToolsReport,
+} from './task-generator.js';
+import { fetchToolIndex, matchToolsForTask, buildDeepToolContext } from './engine-bridge.js';
 import { startLoop, stopLoop, getLoopStatus } from './task-loop.js';
 import { MemoryManager } from './memory.js';
 import { SkillsManager } from './skills.js';
 import { EngineIntegrationManager } from './engine-integration.js';
+import { HyperDriveOrchestrator } from './hyper-drive.js';
 
 function nowIso() { return new Date().toISOString(); }
 function isValidRepo(v) { return /^[^/\s]+\/[^/\s]+$/.test(v); }
@@ -78,6 +90,7 @@ const HELP_TEXT = `⚡ *GN8R — Antigravity Edition*
 /cleanup <owner/repo> — delete stale simba/* branches
 
 *Engine-tools integration:*
+/tools [search|inspect|improve] — explore ecosystem
 /registry — scan live decide.engine-tools
 /gaps [category] — show missing tools
 /catalog — show tool catalog
@@ -104,7 +117,8 @@ export class CommandRouter {
     this.tg = telegram;
     this.memory = new MemoryManager(stateEngine);
     this.skills = new SkillsManager(stateEngine);
-    this.engine = new EngineIntegrationManager(stateEngine);
+    this.engine = new EngineIntegrationManager(config);
+    this.hyperDrive = new HyperDriveOrchestrator({ config, stateEngine, telegram });
   }
 
   _isAdmin(chatId) {
@@ -339,6 +353,25 @@ export class CommandRouter {
         return;
       }
 
+      // ── 3. HyperDrive Burst Mode ──
+      if (trimmed.startsWith('/burst')) {
+        const theme = trimmed.slice('/burst'.length).trim();
+        if (!theme) {
+          await this.tg.sendMessage(chatId, 'Usage: /burst <theme>\nExample: /burst 6000 glass-morphic UI components');
+          return;
+        }
+
+        const countMatch = theme.match(/^(\d+)\s+/);
+        const count = countMatch ? parseInt(countMatch[1], 10) : 6000;
+        const actualTheme = countMatch ? theme.slice(countMatch[0].length).trim() : theme;
+
+        console.log(`[Router] Triggering HyperDrive Burst for ${chatId}: ${count} ${actualTheme}`);
+        this.hyperDrive.startBurst(chatId, actualTheme, count).catch(err => {
+          this.tg.sendMessage(chatId, `❌ *HyperDrive failed*\n${err.message}`);
+        });
+        return;
+      }
+
       if (trimmed.startsWith('/auth')) {
         const email = trimmed.slice('/auth'.length).trim();
         if (!email || !email.includes('@')) { await this.tg.sendMessage(chatId, 'Usage: `/auth your@email.com`'); return; }
@@ -498,23 +531,71 @@ export class CommandRouter {
       }
 
       if (trimmed.startsWith('/registry')) {
-        await this.tg.sendMessage(chatId, '🔍 Scanning live decide.engine-tools registry...');
-        try {
-          const tools = await fetchAllRegisteredTools(this.config);
-          await this.tg.sendMessage(chatId, truncateForTelegram(formatRegistryReport(tools)));
-        } catch (err) { await this.tg.sendMessage(chatId, errMsg('Registry scan failed', err.message, true, 'Check GITHUB_TOKEN.')); }
+        await this.tg.sendMessage(chatId, '📦 Scanning live decide.engine-tools registry...');
+        const tools = await fetchToolIndex(this.config);
+        const report = formatRegistryReport(tools);
+        await this.tg.sendMessage(chatId, report); return;
+      }
+      
+      if (trimmed.startsWith('/tools')) {
+        const args = trimmed.slice('/tools'.length).trim().split(/\s+/);
+        const sub = args[0];
+
+        const index = await fetchToolIndex(this.config);
+
+        if (sub === 'search') {
+          const query = args.slice(1).join(' ').toLowerCase();
+          if (!query) { await this.tg.sendMessage(chatId, 'Usage: `/tools search <query>`'); return; }
+          const matched = index.filter(t => t.id.includes(query) || t.name.toLowerCase().includes(query) || t.description.toLowerCase().includes(query));
+          if (!matched.length) { await this.tg.sendMessage(chatId, `❌ No tools found for "${query}"`); return; }
+          await this.tg.sendMessage(chatId, `🔍 *Search Results (${matched.length}):*\n${matched.map(t => `• ${t.id} — ${t.name}`).join('\n')}`);
+        } else if (sub === 'inspect') {
+          const id = args[1];
+          if (!id) { await this.tg.sendMessage(chatId, 'Usage: `/tools inspect <id>`'); return; }
+          const tool = index.find(t => t.id === id);
+          if (!tool) { await this.tg.sendMessage(chatId, `❌ Tool "${id}" not found.`); return; }
+          const info = [
+            `🛠 *Tool:* ${tool.name}`,
+            `ID: \`${tool.id}\``,
+            `Dir: \`${tool.dir}\``,
+            `Category: ${tool.category}`,
+            `Description: ${tool.description}`,
+            `Tags: ${tool.tags.join(', ')}`,
+            '',
+            `*Inputs:* ${tool.inputs.join(', ') || 'none'}`,
+            `*Outputs:* ${tool.outputs.join(', ') || 'none'}`,
+          ].join('\n');
+          await this.tg.sendMessage(chatId, info);
+        } else if (sub === 'improve') {
+          const id = args[1];
+          if (!id) { await this.tg.sendMessage(chatId, 'Usage: `/tools improve <id>`'); return; }
+          const tool = index.find(t => t.id === id);
+          if (!tool) { await this.tg.sendMessage(chatId, `❌ Tool "${id}" not found.`); return; }
+
+          const taskId = crypto.randomUUID();
+          await this.tg.sendMessage(chatId, `🚀 *Scaling Sensors for ${tool.id}...*`);
+          this.handleMessage({
+            ...interaction,
+            text: `/task\nrepo: via-decide/decide.engine-tools\ntask: Improve the ${tool.id} tool located at ${tool.dir}. Enhance its functionality based on its current description: ${tool.description}. Ensure config.json, index.html, and tool.js are all updated and following best practices.`
+          }).catch(console.error);
+        } else {
+          await this.tg.sendMessage(chatId, formatToolTable(index));
+        }
         return;
       }
 
       if (trimmed.startsWith('/gaps')) {
-        const arg = trimmed.slice('/gaps'.length).trim();
-        const categories = arg ? arg.split(/[\s,]+/).filter(Boolean) : null;
-        const catalogToCheck = categories ? Object.fromEntries(Object.entries(TOOL_CATALOG).filter(([cat]) => categories.includes(cat))) : TOOL_CATALOG;
         await this.tg.sendMessage(chatId, '🔍 Checking for missing tools...');
-        try {
-          const missing = await discoverMissingTools(catalogToCheck, this.config);
-          await this.tg.sendMessage(chatId, truncateForTelegram(formatMissingToolsReport(missing)));
-        } catch (err) { await this.tg.sendMessage(chatId, errMsg('Gaps check failed', err.message, true, 'Check GITHUB_TOKEN.')); }
+        const index = await fetchToolIndex(this.config);
+        const liveIds = new Set(index.map(t => t.id));
+        
+        const missing = [];
+        for (const [category, tools] of Object.entries(TOOL_CATALOG)) {
+          for (const tool of tools) {
+            if (!liveIds.has(tool.id)) missing.push({ category, ...tool });
+          }
+        }
+        await this.tg.sendMessage(chatId, truncateForTelegram(formatMissingToolsReport(missing)));
         return;
       }
 
@@ -527,6 +608,47 @@ export class CommandRouter {
 
   async handleCallback({ chatId, callbackQueryId, data }) {
     try {
+      // ── Commander UI callbacks (Merge / Tweak / Close) ──
+      if (data.startsWith('commander:')) {
+        const parts = data.split(':');
+        const action = parts[1];
+        const taskId = parts[2];
+
+        if (action === 'merge') {
+          const task = await this.stateEngine.getTask(chatId, taskId);
+          if (!task || !task.result) {
+            await this.tg.sendMessage(chatId, '⚠️ Task not found or has no result. Cannot merge.');
+            return;
+          }
+
+          const repo = task.repo;
+          const prNumber = task.result?.prNumber;
+          const prUrl = task.result?.prUrl;
+
+          if (!prNumber || !repo) {
+            await this.tg.sendMessage(chatId, `⚠️ No PR number found for this task. ${prUrl ? `You can merge manually: ${prUrl}` : 'Run the task again with live mode.'}`);
+            return;
+          }
+
+          const [owner, repoName] = repo.split('/');
+          await this.tg.sendMessage(chatId, `🔄 Merging PR #${prNumber} on ${repo}...`);
+
+          try {
+            const { mergePullRequest } = await import('./github.js');
+            await mergePullRequest(owner, repoName, prNumber, this.config);
+            await this.tg.sendMessage(chatId, `✅ *PR #${prNumber} merged successfully!*\n\n🔗 ${prUrl}`);
+          } catch (mergeErr) {
+            await this.tg.sendMessage(chatId, `❌ *Merge failed*\n\n${mergeErr.message}\n\nYou can try merging manually: ${prUrl || 'N/A'}`);
+          }
+        } else if (action === 'tweak') {
+          await this.tg.sendMessage(chatId, `🔄 Send your tweak instructions for task \`${taskId}\`.\n\nReply with what you want changed and I'll re-run the pipeline.`);
+        } else if (action === 'close') {
+          await this.tg.sendMessage(chatId, `✕ Task \`${taskId}\` dismissed.`);
+        }
+        return;
+      }
+
+      // ── Run / Cancel callbacks (from /improve preview) ──
       if (!data.startsWith('run:') && !data.startsWith('cancel:')) return;
       const chat = await this.stateEngine.getChatState(chatId);
       const pending = chat.pendingPreview;
