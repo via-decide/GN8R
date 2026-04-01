@@ -183,4 +183,56 @@ export class StateEngine {
       ...chat, taskQueue: { pending: [], completed: [], failed: [] }
     }));
   }
+
+  // ── Memory and Skills ────────────────────────────────────────
+
+  async getMemory(chatId) {
+    const chat = await this.getChatState(chatId);
+    return chat.memory || {};
+  }
+
+  async upsertMemory(chatId, updater) {
+    return this.upsertChatState(chatId, chat => {
+      chat.memory = updater(chat.memory || {});
+      return chat;
+    });
+  }
+
+  async getSkills(chatId) {
+    const chat = await this.getChatState(chatId);
+    return chat.skills || {};
+  }
+
+  async upsertSkills(chatId, updater) {
+    return this.upsertChatState(chatId, chat => {
+      chat.skills = updater(chat.skills || {});
+      return chat;
+    });
+  }
+
+  // ── Auth and Wallet ──────────────────────────────────────────
+
+  async getAuth(chatId) {
+    const chat = await this.getChatState(chatId);
+    return chat.auth || null;
+  }
+
+  async upsertAuth(chatId, data) {
+    return this.upsertChatState(chatId, chat => {
+      chat.auth = data;
+      return chat;
+    });
+  }
+
+  async getWalletState(chatId) {
+    const chat = await this.getChatState(chatId);
+    return chat.wallet || null;
+  }
+
+  async upsertWalletState(chatId, data) {
+    return this.upsertChatState(chatId, chat => {
+      chat.wallet = data;
+      return chat;
+    });
+  }
 }

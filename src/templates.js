@@ -58,6 +58,13 @@ ${input.repoAudit.readmeSnippet}
 ${input.repoAudit.agentsSnippet}
 ${engineArchNote(input)}
 
+SOP: PRE-MODIFICATION PROTOCOL (MANDATORY)
+1. Adherence to Instructions: No deviations without explicit user approval.
+2. Mandatory Clarification: Immediately ask if instructions are ambiguous or incomplete.
+3. Proposal First: Always propose optimizations or fixes before implementing them.
+4. Scope Discipline: Do not add unrequested features or modify unrelated code.
+5. Vulnerability Check: Immediately flag and explain security risks.
+
 OUTPUT REQUIREMENTS
 - Include: implementation summary, checks run, risks, rollback notes.
 - Generate branch + PR package.
@@ -79,6 +86,11 @@ RULES
 3. Make minimal repairs only; do not expand scope.
 4. Re-run checks and provide concise root-cause notes.
 5. Return complete contents for changed files only.
+
+SOP: REPAIR PROTOCOL (MANDATORY)
+1. Strict Fix Only: Do not use repair mode to expand scope or add features.
+2. Regression Check: Audit why previous attempt failed before proposing a fix.
+3. Minimal Footprint: Only return contents for the actual repaired files.
 
 REPO CONTEXT
 - README snippet:

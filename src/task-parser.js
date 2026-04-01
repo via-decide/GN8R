@@ -62,28 +62,16 @@ export function truncateForTelegram(text, maxLen = 4000) {
 export function chunksForTelegram(text, maxLen = 4000) {
   if (!text) return [''];
   if (text.length <= maxLen) return [text];
-
-  // Telegram hard limit is 4096 chars. We keep a lower safety buffer by default
-  // and split on natural boundaries to preserve message formatting.
   const chunks = [];
-  let cursor = 0;
-
-  while (cursor < text.length) {
-    const remaining = text.length - cursor;
-    if (remaining <= maxLen) {
-      chunks.push(text.slice(cursor));
-      break;
-    }
-
-    const window = text.slice(cursor, cursor + maxLen);
-    const breakCandidates = [window.lastIndexOf('\n'), window.lastIndexOf(' ')].filter(i => i > 0);
-    const bestBreak = breakCandidates.length ? Math.max(...breakCandidates) : -1;
-    const cutAt = bestBreak >= Math.floor(maxLen * 0.6) ? bestBreak + 1 : maxLen;
-
-    chunks.push(text.slice(cursor, cursor + cutAt));
-    cursor += cutAt;
+  let remaining = text;
+  while (remaining.length > 0) {
+    if (remaining.length <= maxLen) { chunks.push(remaining); break; }
+    const window = remaining.slice(0, maxLen);
+    const lastNl = window.lastIndexOf('\n');
+    const cutAt = lastNl > maxLen / 2 ? lastNl + 1 : maxLen;
+    chunks.push(remaining.slice(0, cutAt).trimEnd());
+    remaining = remaining.slice(cutAt).trimStart();
   }
-
   return chunks;
 }
 
@@ -147,11 +135,20 @@ function parseInlineYaml(text) {
 
 function buildTaskFromMap(map) {
   const targetRepo = (map.repo || map.target_repo || '').trim();
-  const taskDescription = (map.task || map.description || '').trim();
-  validateRequired({ targetRepo, taskDescription });
+  const rawTask = (map.task || map.description || '').trim();
+  const rawConstraints = (map.constraints || '').trim();
+  const rawGoal = (map.goal || '').trim();
+
+  const clean = (s) => s.replace(/^>\s*/, '').replace(/\/end_task\s*$/, '').trim();
+
+  validateRequired({ targetRepo, taskDescription: rawTask });
+
   return {
-    targetRepo, mode: normalizeMode(map.mode || 'codex_then_antigravity'),
-    taskDescription, constraints: (map.constraints || '').trim(), goal: (map.goal || '').trim()
+    targetRepo,
+    mode: normalizeMode(map.mode || 'codex_then_antigravity'),
+    taskDescription: clean(rawTask),
+    constraints: clean(rawConstraints),
+    goal: clean(rawGoal)
   };
 }
 

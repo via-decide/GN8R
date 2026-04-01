@@ -78,8 +78,12 @@ export async function startTelegramBot() {
   // Validate token
   try {
     const me = await telegram.getMe();
-    console.log(`[bot] Connected as @${me.username} (${me.first_name})`);
-  } catch (err) { throw new Error(`Failed to connect to Telegram: ${err.message}`); }
+    if (me) {
+      console.log(`[bot] Connected as @${me.username} (${me.first_name})`);
+    } else {
+      console.warn('[bot] getMe returned no result. Checking connection...');
+    }
+  } catch (err) { console.error(`[bot] Failed to connect to Telegram: ${err.message}`); }
 
   console.log(`[bot] Live push: ${config.allowLivePush} | Live PR: ${config.allowLivePr}`);
   if (config.enforceAdminOnly) console.log(`[bot] Admin-only: ${config.adminChatIds.length} allowed chat(s)`);
@@ -103,15 +107,31 @@ export async function startTelegramBot() {
       for (const update of updates) {
         offset = update.update_id + 1;
 
-        if (update.message?.text) {
+        if (update.message) {
           const chatId = update.message.chat.id;
           const userId = update.message.from?.id || chatId;
-          const text   = update.message.text;
-          console.log(`[msg] ${chatId}: ${text.slice(0, 80)}`);
-          router.handleMessage({ chatId, userId, text }).catch(err => {
-            console.error(`[bot] handleMessage error:`, err.message);
-            telegram.sendMessage(chatId, `❌ Internal error: ${err.message}`).catch(() => {});
-          });
+          const text   = update.message.text || update.message.caption || '';
+          
+          // Sensor Array: Detect all interaction modes
+          const interaction = {
+            chatId, userId, text,
+            photo: update.message.photo ? update.message.photo : null,
+            voice: update.message.voice ? update.message.voice : null,
+            audio: update.message.audio ? update.message.audio : null,
+            document: update.message.document ? update.message.document : null,
+            context: {
+              replyTo: update.message.reply_to_message || null,
+              entities: update.message.entities || [],
+            }
+          };
+
+          if (interaction.text || interaction.photo || interaction.voice || interaction.audio || interaction.document) {
+            console.log(`[sensor-array] Captured multi-modal interaction from ${chatId}`);
+            router.handleMessage(interaction).catch(err => {
+              console.error(`[bot] handleMessage error:`, err.message);
+              telegram.sendMessage(chatId, `❌ Internal error: ${err.message}`).catch(() => {});
+            });
+          }
         }
 
         if (update.callback_query?.data) {

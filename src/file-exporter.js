@@ -28,37 +28,27 @@ export function makeTelegramAPI(token) {
     return data.result;
   }
 
-
-  async function sendMessageChunked(chatId, text, extra = {}) {
-    const chunks = chunksForTelegram(text);
-    const results = [];
-
-    for (let i = 0; i < chunks.length; i++) {
-      const isFirstChunk = i === 0;
-      const payload = {
-        chat_id: chatId,
-        text: chunks[i],
-        disable_web_page_preview: true,
-        ...(isFirstChunk ? extra : {}),
-      };
-
-      try {
-        results.push(await request('sendMessage', { parse_mode: 'Markdown', ...payload }));
-      } catch {
-        // Fallback: strip markdown if Telegram rejects formatting entities.
-        results.push(await request('sendMessage', {
-          ...payload,
-          text: chunks[i].replace(/[*_`\[\]]/g, ''),
-        }));
-      }
-    }
-
-    return results;
-  }
-
   return {
     async sendMessage(chatId, text, extra = {}) {
-      return sendMessageChunked(chatId, text, extra);
+      const chunks = chunksForTelegram(text);
+      const results = [];
+      for (const chunk of chunks) {
+        try {
+          results.push(await request('sendMessage', {
+            chat_id: chatId, text: chunk,
+            parse_mode: 'Markdown',
+            disable_web_page_preview: true,
+            ...extra,
+          }));
+        } catch {
+          // fallback: strip markdown
+          results.push(await request('sendMessage', {
+            chat_id: chatId, text: chunk.replace(/[*_`\[\]]/g, ''),
+            disable_web_page_preview: true,
+          }));
+        }
+      }
+      return results;
     },
 
     async sendDocument(chatId, filepath, filename, caption) {
@@ -77,7 +67,10 @@ export function makeTelegramAPI(token) {
     },
 
     async sendPreviewCard(chatId, { text, buttons }) {
-      return sendMessageChunked(chatId, text, { reply_markup: { inline_keyboard: buttons } });
+      return request('sendMessage', {
+        chat_id: chatId, text,
+        reply_markup: { inline_keyboard: buttons },
+      });
     },
 
     async answerCallbackQuery(callbackQueryId, text) {
@@ -89,14 +82,27 @@ export function makeTelegramAPI(token) {
     },
 
     async getMe() {
-      const res = await fetch(`${BASE}/getMe`);
-      const data = await res.json();
-      return data.result;
+      try {
+        return await request('getMe', {});
+      } catch (err) {
+        throw new Error(`getMe failed: ${err.message}`);
+      }
     },
   };
 }
 
-export function formatFileCaption(plan, artifact) {
+export function formatFileCaption(plan, artifact, metrics) {
   const kb = ((artifact.size || 0) / 1024).toFixed(1);
-  return [`✅ *Task complete*`, ``, `📄 \`${artifact.filename}\``, `📦 ${kb} KB | ${(plan.outputType || 'file').toUpperCase()}`, ``, `_Antigravity • Decide Engine Bot_`].join('\n');
+  const lines = [
+    `✅ *Synthesis Engine Apex*`,
+    ``,
+    `📄 \`${artifact.filename}\``,
+    `📦 ${kb} KB | ${(plan.outputType || 'file').toUpperCase()}`,
+    ``,
+    metrics ? `⚡ *Efficiency:* ${metrics.tokenEfficiency} | *Confidence:* ${metrics.confidence}` : '',
+    metrics ? `⏱ *Duration:* ${metrics.duration}` : '',
+    ``,
+    `_Antigravity Synthesis Orchestrator_`
+  ];
+  return lines.filter(Boolean).join('\n');
 }

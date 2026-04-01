@@ -1,7 +1,7 @@
 import { startTelegramBot } from './telegram-bot.js';
 
 console.log('');
-console.log('  ⚡ Decide Engine Bot — Antigravity Edition');
+console.log('  ⚡ GN8R — Antigravity Edition');
 console.log('  ─────────────────────────────────────────');
 console.log('  Powered by Antigravity (Gemini) + Decide Engine');
 console.log('  Repo: via-decide/decide.engine-tools');

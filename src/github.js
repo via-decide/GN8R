@@ -8,12 +8,13 @@ async function githubRequest(urlPath, config, options = {}) {
   if (!config.githubToken) throw new Error('GITHUB_TOKEN is not configured.');
   const url = `${config.githubApiBaseUrl}${urlPath}`;
   const res = await fetch(url, {
+    ...options,
     headers: {
       ...JSON_HEADERS,
       Authorization: `Bearer ${config.githubToken}`,
       'X-GitHub-Api-Version': '2022-11-28',
+      ...(options.headers || {}),
     },
-    ...options,
   });
   if (!res.ok) {
     const body = await res.text();
