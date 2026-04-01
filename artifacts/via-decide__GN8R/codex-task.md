@@ -2,6 +2,11 @@ You are working in repository via-decide/GN8R on branch main.
 
 MISSION
 Upgrade the Telegram notification system into an interactive PR Controller ('Commander').
+Upgrade the GN8R synthesis pipeline with 'Synapse'-a repo-aware context fetching engine.
+
+CONSTRAINTS
+The Octokit fetch must handle base64 decoding correctly since GitHub API returns file contents in base64. If a file is not found (404), gracefully ignore it and assume the user wants to create a brand new file. The pre-flight LLM call must be exceptionally fast to not delay the UX.
+Upgrade the Telegram message listener to support Multimodal (Audio) payloads for native voice-to-code generation.
 
 CONSTRAINTS
 Zero NPM dependencies. Must handle GitHub merge conflicts gracefully by alerting the user in Telegram if a merge is blocked. The 'Tweak' logic must correctly identify the open PR branch to push new commits to the same branch instead of creating a new one.
