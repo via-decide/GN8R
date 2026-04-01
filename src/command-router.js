@@ -16,6 +16,9 @@ import { formatFileCaption } from './file-exporter.js';
 import { listOwnerRepos, inspectRepository, listRepoBranches, deleteBranch } from './github.js';
 import { generateTasks, generateNextTask, getCatalogSummary, formatTaskListForTelegram, formatTaskForTelegram, TOOL_CATALOG, discoverMissingTools, fetchAllRegisteredTools, formatRegistryReport, formatMissingToolsReport } from './task-generator.js';
 import { startLoop, stopLoop, getLoopStatus } from './task-loop.js';
+import { MemoryManager } from './memory.js';
+import { SkillsManager } from './skills.js';
+import { EngineIntegrationManager } from './engine-integration.js';
 
 function nowIso() { return new Date().toISOString(); }
 function isValidRepo(v) { return /^[^/\s]+\/[^/\s]+$/.test(v); }
@@ -50,7 +53,7 @@ function formatHistory(tasks) {
   }).join('\n');
 }
 
-const HELP_TEXT = `⚡ *Decide Engine Bot — Antigravity Edition*
+const HELP_TEXT = `⚡ *GN8R — Antigravity Edition*
 
 *File generation (for everyone):*
 /task <description> — generate a real file
@@ -83,13 +86,25 @@ const HELP_TEXT = `⚡ *Decide Engine Bot — Antigravity Edition*
 /queue clear — reset queue
 /loop start [dry|live] — continuous execution
 /loop stop — stop loop
-/loop status — loop state`;
+/loop status — loop state
+
+*Engine World State:*
+/auth <email> — link to Orchard account
+/wallet — check Orchard balance/credits
+/market — view global engine dynamics
+/scaffold <name>: <prompt> — build tool spec
+*Compliance:*
+🛡️ All orchestration follows **SOP.md**.
+⚠️ Repo tasks require the \`repo:\` field.`;
 
 export class CommandRouter {
   constructor({ config, stateEngine, telegram }) {
     this.config = config;
     this.stateEngine = stateEngine;
     this.tg = telegram;
+    this.memory = new MemoryManager(stateEngine);
+    this.skills = new SkillsManager(stateEngine);
+    this.engine = new EngineIntegrationManager(stateEngine);
   }
 
   _isAdmin(chatId) {
@@ -98,7 +113,8 @@ export class CommandRouter {
     return this.config.adminChatIds.includes(String(chatId));
   }
 
-  async handleMessage({ chatId, text, userId }) {
+  async handleMessage(interaction) {
+    const { chatId, userId, text } = interaction;
     const trimmed = sanitizeTelegram(text || '').trim();
     const uid = userId || chatId;
 
@@ -147,50 +163,61 @@ export class CommandRouter {
       if (trimmed.startsWith('/task')) {
         const body = trimmed.slice('/task'.length).trim();
 
-        // ── User file generation (no repo field) ──
-        if (!body.includes('repo:') && !body.startsWith('{')) {
+        // ── 1. Normal Task (User file generation) ──
+        const isRepoTask = /(?:^|\n)\s*repo\s*:/i.test(body) || body.startsWith('{');
+        if (!isRepoTask) {
           const parsed = parseUserTask(trimmed);
-          if (!parsed) { await this.tg.sendMessage(chatId, 'Please describe your task:\n\n`/task create a markdown resume template`'); return; }
-          if (parsed.error) { await this.tg.sendMessage(chatId, `❌ ${parsed.error}`); return; }
+          if (!parsed && !interaction.photo && !interaction.voice) { await this.tg.sendMessage(chatId, 'Please describe your task or send a voice/photo:\n\n`/task create a resume`'); return; }
+          
+          const description = (parsed?.description || interaction.text || 'Process multi-modal input').trim();
 
           const active = await this.stateEngine.getActiveTask(chatId);
           if (active) { await this.tg.sendMessage(chatId, `⚠ Task already running. /cancel to stop it.`); return; }
 
+          console.log(`[Router] Triggering NORMAL task pipeline (Beast-Mode) for ${chatId}`);
           const taskId = crypto.randomUUID();
           await this.stateEngine.setTaskState(chatId, taskId, {
-            taskId, description: parsed.description, status: TaskStatus.PENDING,
+            taskId, description, status: TaskStatus.PENDING,
             timestamps: { startedAt: nowIso(), updatedAt: nowIso() },
           });
 
-          await this.tg.sendMessage(chatId, `🚀 *Task received*\n\n_${parsed.description.slice(0, 100)}_\n\nRunning pipeline...`);
+          await this.tg.sendMessage(chatId, `🚀 *Synthesis Orchestrator Active*\n\n_${description.slice(0, 100)}_\n\nAnalyzing sensors...`);
 
           const result = await runUserPipeline(
-            { id: taskId, userId: chatId, description: parsed.description },
-            this.config, this.stateEngine,
+            { id: taskId, userId: chatId, description, photo: interaction.photo, voice: interaction.voice, audio: interaction.audio },
+            this.config, this.stateEngine, this.memory,
             async (msg) => { await this.tg.sendMessage(chatId, msg); }
           );
 
           if (!result.success) {
-            await this.tg.sendMessage(chatId, `❌ *Task failed*\n\n${result.error}\n\nPlease try again.`);
+            await this.tg.sendMessage(chatId, `❌ *Synthesis failed*\n\n${result.error}\n\nPlease try again.`);
             return;
           }
 
           for (const artifact of result.artifacts) {
-            const caption = formatFileCaption(result.plan, artifact);
+            const caption = formatFileCaption(result.plan, artifact, result.metrics);
             try {
-              await this.tg.sendDocument(chatId, artifact.filepath, artifact.filename, caption);
+              await this.tg.sendDocument(chatId, artifact.filepath, artifact.filename, caption, {
+                reply_markup: {
+                  inline_keyboard: [
+                    [{ text: '✅ Merge', callback_data: `commander:merge:${taskId}` }, { text: '🔄 Tweak', callback_data: `commander:tweak:${taskId}` }],
+                    [{ text: '✕ Close', callback_data: `commander:close:${taskId}` }]
+                  ]
+                }
+              });
             } catch {
               const preview = artifact.content.slice(0, 3000);
               await this.tg.sendMessage(chatId, `✅ *${artifact.filename}*\n\`\`\`\n${preview}\n\`\`\``);
             }
           }
-          await this.tg.sendMessage(chatId, `✅ Done! Need something else? /task`);
           return;
         }
 
-        // ── GitHub orchestration (has repo: field) ──
-        if (!body) { await this.tg.sendMessage(chatId, 'Usage:\n/task\nrepo: owner/repo\nmode: codex_then_antigravity\ntask: what to do'); return; }
-        await this.tg.sendMessage(chatId, '⏳ Running task...');
+        // ── 2. Repo Task (GitHub orchestration) ──
+        if (!body) { await this.tg.sendMessage(chatId, 'Usage:\n/task\nrepo: owner/repo\ntask: what to do'); return; }
+        
+        console.log(`[Router] Triggering REPO task pipeline (Beast-Mode) for ${chatId}`);
+        await this.tg.sendMessage(chatId, '⏳ activating orchestration sensors...');
         let parsed;
         try { parsed = parseTaskMessage(body); }
         catch (parseErr) { await this.tg.sendMessage(chatId, errMsg('Task parse failed', parseErr.message, true, 'Check formatting.')); return; }
@@ -203,12 +230,158 @@ export class CommandRouter {
             constraints: parsed.constraints, goal: parsed.goal,
             mode: parsed.mode, dryRun: false,
             config: this.config, stateEngine: this.stateEngine,
+            photo: interaction.photo, voice: interaction.voice, audio: interaction.audio,
             onStageUpdate: async ({ stage, details }) => { await this.tg.sendMessage(chatId, `[${stage}] ${truncateForTelegram(details)}`); },
           });
           await this._sendTaskResult(chatId, task);
         } catch (err) {
           await this.tg.sendMessage(chatId, errMsg('Task failed', err.message, true, '/resume'));
         }
+        return;
+      }
+
+      if (trimmed.startsWith('/remember')) {
+        const body = trimmed.slice('/remember'.length).trim();
+        if (!body) { await this.tg.sendMessage(chatId, 'Usage: `/remember key: value` or `/remember some fact`'); return; }
+        const { key, value } = this.memory.extractKey(body);
+        await this.memory.set(chatId, key, value);
+        await this.tg.sendMessage(chatId, `📌 Remembered: *${key}* → ${value}`);
+        return;
+      }
+
+      if (trimmed.startsWith('/recall')) {
+        const key = trimmed.slice('/recall'.length).trim();
+        if (key) {
+          const fact = await this.memory.get(chatId, key);
+          if (fact) await this.tg.sendMessage(chatId, `📌 *${key}*: ${fact.value}`);
+          else await this.tg.sendMessage(chatId, `❌ Key "${key}" not found in memory.`);
+        } else {
+          const out = await this.memory.format(chatId);
+          await this.tg.sendMessage(chatId, out);
+        }
+        return;
+      }
+
+      if (trimmed.startsWith('/forget')) {
+        const key = trimmed.slice('/forget'.length).trim().toLowerCase();
+        if (!key) { await this.tg.sendMessage(chatId, 'Usage: `/forget <key>` or `/forget all`'); return; }
+        if (key === 'all') {
+          await this.memory.delete(chatId, 'all');
+          await this.tg.sendMessage(chatId, '🧠 Memory cleared.');
+        } else {
+          await this.memory.delete(chatId, key);
+          await this.tg.sendMessage(chatId, `🗑️ Forgot: *${key}*`);
+        }
+        return;
+      }
+
+      if (trimmed.startsWith('/skill')) {
+        const args = trimmed.slice('/skill'.length).trim().split(/\s+/);
+        const sub = args[0] || 'help';
+
+        if (sub === 'define') {
+          const content = trimmed.slice(trimmed.indexOf('define') + 6).trim();
+          const colonIdx = content.indexOf(':');
+          if (colonIdx === -1) { await this.tg.sendMessage(chatId, 'Usage: `/skill define <name>: <prompt template>`'); return; }
+          const name = content.slice(0, colonIdx).trim();
+          const template = content.slice(colonIdx + 1).trim();
+          const slug = await this.skills.define(chatId, name, { promptTemplate: template });
+          await this.tg.sendMessage(chatId, `✅ Skill defined: \`${slug}\``);
+        } else if (sub === 'list') {
+          const out = await this.skills.format(chatId);
+          await this.tg.sendMessage(chatId, out);
+        } else if (sub === 'run') {
+          const name = args[1];
+          if (!name) { await this.tg.sendMessage(chatId, 'Usage: `/skill run <name> [input]`'); return; }
+          const input = args.slice(2).join(' ');
+          try {
+            const invoked = await this.skills.invoke(chatId, name, input);
+            await this.tg.sendMessage(chatId, `🚀 *Running skill:* \`${name}\`...`);
+            const taskId = crypto.randomUUID();
+            await runUserPipeline(
+              { id: taskId, userId: chatId, description: invoked.description },
+              this.config, this.stateEngine, this.memory,
+              async (msg) => { await this.tg.sendMessage(chatId, msg); }
+            ).then(async result => {
+              if (result.success) {
+                for (const artifact of result.artifacts) {
+                  const caption = formatFileCaption(result.plan, artifact);
+                  await this.tg.sendDocument(chatId, artifact.filepath, artifact.filename, caption).catch(async () => {
+                    await this.tg.sendMessage(chatId, `✅ *${artifact.filename}*\n\`\`\`\n${artifact.content.slice(0, 3000)}\n\`\`\``);
+                  });
+                }
+              } else {
+                await this.tg.sendMessage(chatId, `❌ *Skill failed*\n\n${result.error}`);
+              }
+            });
+          } catch (err) {
+            await this.tg.sendMessage(chatId, `❌ Error: ${err.message}`);
+          }
+        } else if (sub === 'delete') {
+          const name = args[1];
+          if (!name) { await this.tg.sendMessage(chatId, 'Usage: `/skill delete <name>`'); return; }
+          try {
+            await this.skills.remove(chatId, name);
+            await this.tg.sendMessage(chatId, `🗑️ Skill deleted: \`${name}\``);
+          } catch (err) { await this.tg.sendMessage(chatId, `❌ ${err.message}`); }
+        } else {
+          const help = [
+            '🛠️ *Skills Usage*',
+            '`/skill define <name>: <prompt>` — Save a new workflow',
+            '`/skill list` — Show all skills',
+            '`/skill run <name> [input]` — Execute a skill',
+            '`/skill delete <name>` — Remove a skill',
+            '',
+            'Use `{{input}}` in your prompt template to inject runtime text.'
+          ].join('\n');
+          await this.tg.sendMessage(chatId, help);
+        }
+        return;
+      }
+
+      if (trimmed.startsWith('/auth')) {
+        const email = trimmed.slice('/auth'.length).trim();
+        if (!email || !email.includes('@')) { await this.tg.sendMessage(chatId, 'Usage: `/auth your@email.com`'); return; }
+        await this.engine.linkAuth(chatId, email);
+        await this.tg.sendMessage(chatId, `📧 *Auth Linked*\n\nYour Telegram is now bridged to: ${email}\nUse /wallet to check your state.`);
+        return;
+      }
+
+      if (trimmed.startsWith('/wallet')) {
+        const wallet = await this.engine.getWallet(chatId);
+        await this.tg.sendMessage(chatId, this.engine.formatWalletReport(wallet));
+        return;
+      }
+
+      if (trimmed.startsWith('/market')) {
+        const status = this.engine.getMarketStatus();
+        await this.tg.sendMessage(chatId, this.engine.formatMarketReport(status));
+        return;
+      }
+
+      if (trimmed.startsWith('/scaffold')) {
+        const content = trimmed.slice('/scaffold'.length).trim();
+        const colonIdx = content.indexOf(':');
+        if (colonIdx === -1) { await this.tg.sendMessage(chatId, 'Usage: `/scaffold MyTool: description of what it does`'); return; }
+        const name = content.slice(0, colonIdx).trim();
+        const prompt = content.slice(colonIdx + 1).trim();
+        
+        await this.tg.sendMessage(chatId, `🛠️ *Scaffolding tool:* ${name}...`);
+        const result = await this.engine.buildScaffold(name, prompt);
+        
+        const out = [
+          `✅ *Scaffold Complete*`,
+          `ID: \`${result.spec.id}\``,
+          `Dir: \`${result.payload.toolDir}\``,
+          '',
+          `*Config Code:*`,
+          `\`\`\`json\n${JSON.stringify(result.spec, null, 2)}\n\`\`\``,
+          '',
+          `*Starter HTML:*`,
+          `\`\`\`html\n${result.template}\n\`\`\``
+        ].join('\n');
+        
+        await this.tg.sendMessage(chatId, truncateForTelegram(out));
         return;
       }
 
@@ -393,10 +566,24 @@ export class CommandRouter {
   async _sendTaskResult(chatId, task) {
     if (!task) { await this.tg.sendMessage(chatId, 'No task result.'); return; }
     if (task.status === 'success') {
-      const lines = [`✅ Pipeline complete`, `Repo: ${task.repo}`, `Mode: ${task.mode}`, `Push: ${task.result?.push || 'n/a'}`, `PR: ${task.result?.prCreation || 'n/a'}`];
+      const lines = [`✅ Pipeline complete (Beast-Mode)`];
+      if (task.repo) lines.push(`Repo: ${task.repo}`);
+      if (task.mode && task.repo) lines.push(`Mode: ${task.mode}`);
+      if (task.result?.metrics) {
+        lines.push(`⚡ Efficiency: ${task.result.metrics.tokenEfficiency} | Confidence: ${task.result.metrics.confidence}`);
+        lines.push(`⏱ Duration: ${task.result.metrics.duration}`);
+      }
+      if (task.result?.push && task.result.push !== 'n/a' && task.result.push !== 'skipped') lines.push(`Push: ${task.result.push}`);
+      if (task.result?.prCreation && task.result.prCreation !== 'n/a' && task.result.prCreation !== 'skipped') lines.push(`PR: ${task.result.prCreation}`);
       if (task.result?.prUrl) lines.push(`🔗 ${task.result.prUrl}`);
       if (task.result?.prPackage?.branch) lines.push(`Branch: ${task.result.prPackage.branch}`);
-      await this.tg.sendMessage(chatId, lines.join('\n'));
+      
+      const buttons = [
+        [{ text: '✅ Merge', callback_data: `commander:merge:${task.taskId}` }, { text: '🔄 Tweak', callback_data: `commander:tweak:${task.taskId}` }],
+        [{ text: '✕ Close', callback_data: `commander:close:${task.taskId}` }]
+      ];
+      
+      await this.tg.sendPreviewCard(chatId, { text: lines.join('\n'), buttons });
     } else {
       await this.tg.sendMessage(chatId, errMsg('Pipeline failed', task.errorDetails?.likelyCause || 'Unknown', task.errorDetails?.retryPossible ?? true, task.errorDetails?.nextAction || '/resume'));
     }

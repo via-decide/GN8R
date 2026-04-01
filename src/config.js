@@ -18,7 +18,8 @@ export function loadConfig() {
 
     // Antigravity (Gemini)
     geminiApiKey:      process.env.GEMINI_API_KEY || '',
-    geminiModel:       process.env.GEMINI_MODEL || 'gemini-2.5-pro-preview-05-06',
+    geminiModel:       process.env.GEMINI_MODEL || 'gemini-1.5-pro',
+    geminiModelFlash:  process.env.GEMINI_MODEL_FLASH || 'gemini-1.5-flash',
     geminiMaxTokens:   8192,
     geminiApiBaseUrl:  process.env.GEMINI_API_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta',
 
