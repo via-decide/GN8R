@@ -1,17 +1,9 @@
-Branch: simba/upgrade-the-telegram-notification-system-into-an
-Title: Upgrade the Telegram notification system into an interactive PR Contr...
-Branch: simba/upgrade-the-gn8r-synthesis-pipeline-with-synapse
-Title: Upgrade the GN8R synthesis pipeline with 'Synapse'-a repo-aware conte...
+Branch: simba/install-the-antigravity-intent-deconstructor-int
+Title: Install the 'Antigravity' Intent Deconstructor into the synthesis pip...
 
 ## Summary
 - Repo orchestration task for via-decide/GN8R
-- Goal: Transform GN8R into a context-aware codebase editor that automatically reads the user's live files before generating code, ensuring edits are perfectly integrated into the existing architecture rather than hallucinated from scratch.
-Branch: simba/upgrade-the-telegram-message-listener-to-support
-Title: Upgrade the Telegram message listener to support Multimodal (Audio) p...
-
-## Summary
-- Repo orchestration task for via-decide/GN8R
-- Goal: Complete the autonomous developer loop by allowing the user to review, merge, or iterate on AI-generated code directly within the Telegram UI, eliminating the need to ever visit the GitHub website for routine updates.
+- Goal: Eliminate 'blind synthesis' by forcing the bot to confirm a technical plan with the user before generating long-form code, ensuring that even vague 'Antigravity' captions result in perfect architectural outcomes.
 
 ## Testing Checklist
 - [ ] Run unit/integration tests
