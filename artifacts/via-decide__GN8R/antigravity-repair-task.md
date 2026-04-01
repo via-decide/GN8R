@@ -4,9 +4,7 @@ TARGET
 Validate and repair only the files touched by the previous implementation.
 
 TASK
-Upgrade the Telegram notification system into an interactive PR Controller ('Commander').
-Upgrade the GN8R synthesis pipeline with 'Synapse'-a repo-aware context fetching engine.
-Upgrade the Telegram message listener to support Multimodal (Audio) payloads for native voice-to-code generation.
+Install the 'Antigravity' Intent Deconstructor into the synthesis pipeline.
 
 RULES
 1. Audit touched files first and identify regressions.
