@@ -1,3 +1,5 @@
+Branch: simba/upgrade-the-telegram-notification-system-into-an
+Title: Upgrade the Telegram notification system into an interactive PR Contr...
 Branch: simba/upgrade-the-gn8r-synthesis-pipeline-with-synapse
 Title: Upgrade the GN8R synthesis pipeline with 'Synapse'-a repo-aware conte...
 
@@ -9,7 +11,7 @@ Title: Upgrade the Telegram message listener to support Multimodal (Audio) p...
 
 ## Summary
 - Repo orchestration task for via-decide/GN8R
-- Goal: Allow the user to send Telegram Voice Notes directly to the bot, enabling GN8R to autonomously convert spoken architectural instructions into deployed code in real-time.
+- Goal: Complete the autonomous developer loop by allowing the user to review, merge, or iterate on AI-generated code directly within the Telegram UI, eliminating the need to ever visit the GitHub website for routine updates.
 
 ## Testing Checklist
 - [ ] Run unit/integration tests
