@@ -1,10 +1,10 @@
 You are working in repository via-decide/GN8R on branch main.
 
 MISSION
-Overhaul the core code generation pipeline to completely bypass the Codex intermediate layer. The bot must now use the native Gemini API directly to generate long-form code, and then use its existing GitHub integration to push the PR.
+Upgrade the Telegram message listener to support Multimodal (Audio) payloads for native voice-to-code generation.
 
 CONSTRAINTS
-The bot must gracefully handle scenarios where Gemini accidentally includes markdown wrappers (regex strip json and ``` before parsing). The GitHub API logic must remain robust enough to handle multiple files in a single Gemini response.
+The bot must gracefully handle the audio buffer conversion. Ensure the base64 string doesn't exceed memory limits for extremely long voice notes. The output must remain strict JSON to not break the Octokit commit pipeline.
 
 PROCESS (MANDATORY)
 1. Read README.md and AGENTS.md before editing.
