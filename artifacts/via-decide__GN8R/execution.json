@@ -1,6 +1,7 @@
 {
   "repo": "via-decide/GN8R",
   "mode": "codex_then_antigravity",
+  "branch": "simba/upgrade-the-gn8r-synthesis-pipeline-with-synapse",
   "branch": "simba/upgrade-the-telegram-message-listener-to-support",
   "files_to_create": [
     "codex-task.md",
