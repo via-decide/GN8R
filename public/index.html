@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="GN8R UI refresh with stable responsive layout.">
+  <title>GN8R · Home</title>
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <link rel="stylesheet" href="../assets/css/layout.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/responsive.css">
+</head>
+<body>
+  <div data-header-slot></div>
+
+  <main class="site-main">
+    <section id="overview" class="hero">
+      <div class="container hero-grid">
+        <article class="stack">
+          <h1>Clean GN8R interface</h1>
+          <p>Audit-driven UI rebuild using semantic HTML, modular CSS, and script-safe vanilla JavaScript.</p>
+          <div class="actions">
+            <a class="button" href="https://t.me/GN8RBot" target="_blank" rel="noopener">Open Telegram Bot</a>
+            <a class="button secondary" href="./app.html">Open App Page</a>
+          </div>
+          <p class="caption">No framework and no build step.</p>
+        </article>
+        <aside class="panel" aria-label="Status summary">
+          <h2>UI audit fixes</h2>
+          <ul>
+            <li>Broken layout repaired with consistent container/grid system.</li>
+            <li>Spacing and typography normalized using a 4/8/16/24/32 scale.</li>
+            <li>Dynamic component loading for reusable header/footer/modal.</li>
+            <li>Safer DOM event wiring and keyboard support.</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section id="commands">
+      <div class="container commands-grid">
+        <article>
+          <h2>Command examples</h2>
+          <p>Tap a command to copy it and test it quickly in Telegram.</p>
+          <ul class="command-list" data-command-list aria-label="Command examples"></ul>
+        </article>
+        <article>
+          <h2>Core improvements</h2>
+          <div class="card-grid" data-cards></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="features">
+      <div class="container">
+        <article class="panel">
+          <h2>Architecture</h2>
+          <p>The UI now uses a maintainable split: <strong>/public</strong> pages, <strong>/assets</strong> styles/scripts, and <strong>/components</strong> reusable partials.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <div data-footer-slot></div>
+  <div data-modal-slot></div>
+
+  <script src="../assets/js/state.js"></script>
+  <script src="../assets/js/ui.js"></script>
+  <script src="../assets/js/router.js"></script>
+  <script src="../assets/js/app.js"></script>
+</body>
+</html>

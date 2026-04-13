@@ -1,0 +1,27 @@
+@media (max-width: 900px) {
+  .hero-grid,
+  .commands-grid,
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .menu-toggle { display: inline-flex; }
+  .main-nav {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 64px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: var(--space-3);
+    display: none;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .main-nav.is-open { display: flex; }
+
+  .button { width: 100%; text-align: center; }
+  .copy-command { min-height: 44px; }
+}

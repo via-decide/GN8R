@@ -1,0 +1,92 @@
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(8, 16, 25, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+
+.header-inner {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.brand { display: inline-flex; align-items: center; gap: var(--space-2); font-weight: 700; color: var(--text); }
+.brand-mark {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: grid; place-items: center; background: var(--bg-soft);
+}
+
+.main-nav { display: flex; gap: var(--space-3); }
+.main-nav a { color: var(--text-soft); }
+.main-nav a.is-active { color: var(--text); }
+.menu-toggle { display: none; border: 1px solid var(--border); background: var(--bg-soft); color: var(--text); border-radius: 8px; padding: 6px 10px; }
+
+.panel,
+.info-card,
+.command-list,
+.app-panel {
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+}
+
+.button {
+  display: inline-block;
+  border: 1px solid var(--accent);
+  color: #02111d;
+  background: var(--accent);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 600;
+}
+.button.secondary {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.command-list { list-style: none; margin: 0; padding: var(--space-3); }
+.command-list li + li { margin-top: var(--space-2); }
+.copy-command {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.site-footer {
+  border-top: 1px solid var(--border);
+  padding: var(--space-5) 0;
+}
+.footer-inner { display: grid; gap: var(--space-2); }
+.footer-title { margin: 0; color: var(--text); }
+.footer-caption { margin: 0; }
+.footer-links { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: grid;
+  place-items: center;
+  padding: var(--space-3);
+}
+.modal {
+  width: min(440px, 100%);
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+}
+.modal-header { display: flex; justify-content: space-between; gap: var(--space-2); align-items: center; }
+.modal-header h2 { margin: 0; font-size: 1.125rem; }
+.modal-close { border: 1px solid var(--border); background: transparent; color: var(--text); border-radius: 8px; padding: 4px 10px; }
