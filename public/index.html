@@ -11,7 +11,25 @@
   <link rel="stylesheet" href="../assets/css/responsive.css">
 </head>
 <body>
-  <div data-header-slot></div>
+  <header class="site-header" data-component="header">
+    <div class="container header-inner">
+      <a class="brand" href="./index.html" aria-label="GN8R home">
+        <span class="brand-mark" aria-hidden="true">⚡</span>
+        <span class="brand-text">GN8R</span>
+      </a>
+
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav" aria-label="Toggle navigation">
+        ☰
+      </button>
+
+      <nav id="main-nav" class="main-nav" aria-label="Primary navigation">
+        <a href="./index.html#overview">Overview</a>
+        <a href="./index.html#commands">Commands</a>
+        <a href="./index.html#features">Features</a>
+        <a href="./app.html">Daxini Workspace</a>
+      </nav>
+    </div>
+  </header>
 
   <main class="site-main">
     <section id="overview" class="hero">
@@ -30,7 +48,7 @@
           <ul>
             <li>Broken layout repaired with consistent container/grid system.</li>
             <li>Spacing and typography normalized using a 4/8/16/24/32 scale.</li>
-            <li>Dynamic component loading for reusable header/footer/modal.</li>
+            <li>Navigation now uses stable links for both Home and Workspace pages.</li>
             <li>Safer DOM event wiring and keyboard support.</li>
           </ul>
         </aside>
@@ -55,14 +73,33 @@
       <div class="container">
         <article class="panel">
           <h2>Architecture</h2>
-          <p>The UI now uses a maintainable split: <strong>/public</strong> pages, <strong>/assets</strong> styles/scripts, and <strong>/components</strong> reusable partials.</p>
+          <p>The UI now uses a maintainable split: <strong>/public</strong> pages, <strong>/assets</strong> styles/scripts, and pure browser-native JavaScript.</p>
         </article>
       </div>
     </section>
   </main>
 
-  <div data-footer-slot></div>
-  <div data-modal-slot></div>
+  <footer class="site-footer" data-component="footer">
+    <div class="container footer-inner">
+      <p class="footer-title">GN8R · AI command center</p>
+      <p class="footer-caption">Built with vanilla HTML, CSS, and JavaScript.</p>
+      <div class="footer-links">
+        <a href="https://t.me/GN8RBot" target="_blank" rel="noopener">Telegram</a>
+        <a href="https://github.com/via-decide/GN8R" target="_blank" rel="noopener">GitHub</a>
+        <a href="./app.html">Open app page</a>
+      </div>
+    </div>
+  </footer>
+
+  <div class="modal-backdrop" data-modal hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <header class="modal-header">
+        <h2 id="modal-title">Quick command copied</h2>
+        <button type="button" class="modal-close" data-modal-close aria-label="Close dialog">✕</button>
+      </header>
+      <p class="modal-text" data-modal-text></p>
+    </div>
+  </div>
 
   <script src="../assets/js/state.js"></script>
   <script src="../assets/js/ui.js"></script>
