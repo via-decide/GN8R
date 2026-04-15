@@ -1,13 +1,24 @@
-function setActiveHashLink() {
-  const hash = window.location.hash || '#overview';
-  document.querySelectorAll('.main-nav a[href^="#"]').forEach((link) => {
-    link.classList.toggle('is-active', link.getAttribute('href') === hash);
+function normalizePath(pathname) {
+  return pathname.endsWith('/') ? `${pathname}index.html` : pathname;
+}
+
+function setActiveNavLink() {
+  const currentPath = normalizePath(window.location.pathname);
+  const hash = window.location.hash;
+
+  document.querySelectorAll('.main-nav a').forEach((link) => {
+    const url = new URL(link.getAttribute('href'), window.location.href);
+    const linkPath = normalizePath(url.pathname);
+    const samePath = currentPath === linkPath;
+    const linkHash = url.hash;
+    const isActive = linkHash ? samePath && linkHash === hash : samePath;
+    link.classList.toggle('is-active', isActive);
   });
 }
 
 function initRouter() {
-  setActiveHashLink();
-  window.addEventListener('hashchange', setActiveHashLink);
+  setActiveNavLink();
+  window.addEventListener('hashchange', setActiveNavLink);
 }
 
 window.GN8RRouter = { initRouter };

@@ -1,17 +1,3 @@
-async function loadComponent(selector, file) {
-  const mount = document.querySelector(selector);
-  if (!mount) return;
-  const response = await fetch(file);
-  if (!response.ok) throw new Error(`Failed to load ${file}`);
-  mount.innerHTML = await response.text();
-}
-
-async function loadSharedUI() {
-  await loadComponent('[data-header-slot]', '../components/header.html');
-  await loadComponent('[data-footer-slot]', '../components/footer.html');
-  await loadComponent('[data-modal-slot]', '../components/modal.html');
-}
-
 function renderCards() {
   const grid = document.querySelector('[data-cards]');
   const cards = window.GN8RState?.cards || [];
@@ -45,4 +31,4 @@ function closeModal() {
   document.body.style.overflow = '';
 }
 
-window.GN8RUI = { loadSharedUI, renderCards, renderCommands, showModal, closeModal };
+window.GN8RUI = { renderCards, renderCommands, showModal, closeModal };
