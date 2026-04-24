@@ -132,7 +132,8 @@ export async function runUserPipeline(task, config, stateEngine, memoryManager, 
     // ── 0. GLOBAL FLIGHT PLAN ──
     const visionStatus = task.photo ? 'with Multi-Modal Vision' : 'text-only';
     const voxStatus = task.voice || task.audio ? 'with Vox Audio' : 'silent';
-    const flightPlan = `🛫 *Global Flight Plan (Operation Beast-Mode)*\nMode: synthesis_orchestrator\nInput: ${visionStatus}, ${voxStatus}\nModel: ${config.geminiModelFlash} (Intent) → ${config.geminiModel} (Synthesis)`;
+    const engineName = config.useLocalBrain ? `Zayvora (${config.ollamaModel})` : 'Gemini Pro';
+    const flightPlan = `🛫 *Global Flight Plan (Operation Beast-Mode)*\nMode: synthesis_orchestrator\nInput: ${visionStatus}, ${voxStatus}\nEngine: ${engineName}`;
     onProgress?.(flightPlan);
     await stateEngine.appendLog(chatId, { taskId, stage: 'FLIGHT_PLAN', details: flightPlan });
 
@@ -252,7 +253,8 @@ export async function runGitHubPipeline({ taskId, chatId, repo, taskDescription,
     const visionStatus = photo ? 'with Multi-Modal Vision' : 'text-only';
     const voxStatus = voice || audio ? 'with Vox Audio' : 'silent';
     const synthStatus = hasSynthesis ? `\nSynthesis Target: ${createPath}` : '\nSynthesis: meta-artifacts only';
-    const flightPlan = `🛫 *Global Flight Plan (Operation Beast-Mode)*\nMode: ${hasSynthesis ? 'DIRECT_SYNTHESIS' : 'repo_orchestrator'}\nRepo: ${repo}\nInput: ${visionStatus}, ${voxStatus}${synthStatus}\nModel: ${config.geminiModelFlash} (Intent) → ${config.geminiModel} (Synthesis)`;
+    const engineName = config.useLocalBrain ? `Zayvora (${config.ollamaModel})` : 'Gemini Pro';
+    const flightPlan = `🛫 *Global Flight Plan (Operation Beast-Mode)*\nMode: ${hasSynthesis ? 'DIRECT_SYNTHESIS' : 'repo_orchestrator'}\nRepo: ${repo}\nInput: ${visionStatus}, ${voxStatus}${synthStatus}\nEngine: ${engineName}`;
     await emit('FLIGHT_PLAN', flightPlan);
 
     if (progressFlow) {
