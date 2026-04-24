@@ -45,5 +45,10 @@ export function loadConfig() {
     artifactsDir:     process.env.ARTIFACTS_DIR || 'artifacts',
     maxTaskHistory:   Number(process.env.SIMBA_MAX_TASK_HISTORY || 50),
     taskTimeoutMs:    Number(process.env.SIMBA_TASK_TIMEOUT_MS || 120_000),
+
+    // Local Brain (Zayvora)
+    useLocalBrain:    process.env.USE_LOCAL_BRAIN === 'true',
+    ollamaUrl:        process.env.OLLAMA_URL || 'http://localhost:11434/api/generate',
+    ollamaModel:      process.env.OLLAMA_MODEL || 'Zayvora',
   };
 }
