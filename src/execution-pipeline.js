@@ -45,10 +45,26 @@ async function downloadTelegramFile(token, fileId) {
   return { mimeType, data: base64 };
 }
 
-// ── Antigravity (Gemini) API helper ───────────────────────────
+import { callZayvora } from './zayvora-bridge.js';
 
-async function callAntigravity(systemPrompt, userPrompt, config, modelType = 'synthesis', attachments = []) {
-  if (!config.geminiApiKey) throw new Error('GEMINI_API_KEY is not configured.');
+async function callAntigravity(systemPrompt, userPrompt, config, modelType = 'synthesis', attachments = [], maxTokensOverride = null) {
+  // SOVEREIGN PRIMARY: Always attempt Zayvora (Ollama) first if enabled.
+  // We now route even "Beast-Mode" synthesis to the local engine for full sovereignty.
+  const useZayvora = config.useLocalBrain;
+  if (useZayvora) {
+    console.log(`[Engine] Routing ${modelType} request to ZAYVORA (Ollama) [Sovereign Mode]...`);
+    const prompt = `SYSTEM: ${systemPrompt}\n\nUSER: ${userPrompt}`;
+    try {
+      const resp = await callZayvora(prompt, config);
+      if (resp) return resp;
+    } catch (err) {
+      console.warn(`[Engine] Zayvora failed or unreachable: ${err.message}.`);
+      if (!config.geminiApiKey) throw new Error('Zayvora failed and no Gemini fallback is configured.');
+      console.log('[Engine] Falling back to Gemini secondary...');
+    }
+  }
+
+  if (!config.geminiApiKey) throw new Error('GEMINI_API_KEY is not configured and Zayvora is unavailable.');
   
   const model = modelType === 'intent' 
     ? (config.geminiModelFlash || 'gemini-1.5-flash')
@@ -71,6 +87,8 @@ async function callAntigravity(systemPrompt, userPrompt, config, modelType = 'sy
     }
   }
 
+  const tokenLimit = maxTokensOverride || config.geminiMaxTokens || 8192;
+
   const res = await fetch(url, {
     method: 'POST',
     headers: {
@@ -81,7 +99,7 @@ async function callAntigravity(systemPrompt, userPrompt, config, modelType = 'sy
       system_instruction: { parts: [{ text: systemPrompt }] },
       contents: [{ role: 'user', parts }],
       generationConfig: {
-        maxOutputTokens: config.geminiMaxTokens || 8192,
+        maxOutputTokens: tokenLimit,
         temperature: modelType === 'intent' ? 0.3 : 0.7,
       },
     }),
@@ -90,6 +108,10 @@ async function callAntigravity(systemPrompt, userPrompt, config, modelType = 'sy
   const data = await res.json();
   const candidate = data.candidates?.[0];
   if (!candidate) throw new Error('Antigravity returned no candidates.');
+  
+  // Check for blocked/filtered responses
+  if (candidate.finishReason === 'SAFETY') throw new Error('Antigravity response blocked by safety filter.');
+  
   return candidate.content?.parts?.map(p => p.text).join('') || '';
 }
 
@@ -196,8 +218,9 @@ export async function runUserPipeline(task, config, stateEngine, memoryManager, 
 }
 
 // ── 2. GITHUB ORCHESTRATION PIPELINE (from Simba) ────────────
+//    BEAST-MODE: Now synthesizes REAL code files via Gemini and commits them directly.
 
-export async function runGitHubPipeline({ taskId, chatId, repo, taskDescription, constraints, goal, mode, dryRun, config, stateEngine, onStageUpdate, photo, voice, audio }) {
+export async function runGitHubPipeline({ taskId, chatId, repo, taskDescription, constraints, goal, progressFlow, mode, dryRun, config, stateEngine, onStageUpdate, photo, voice, audio, createPath, purpose, features }) {
   const startedAt = new Date().toISOString();
   const startedTs = Date.now();
   const synapse = new SynapseManager(config);
@@ -214,12 +237,27 @@ export async function runGitHubPipeline({ taskId, chatId, repo, taskDescription,
     await onStageUpdate({ stage, details, taskId, repo, dryRun });
   };
 
+  const animateFlow = async (flowStr) => {
+    if (!flowStr) return;
+    const steps = flowStr.split(',').map(s => s.trim()).filter(Boolean);
+    for (const step of steps) {
+      await emit('ANIMATE', `✨ ${step}...`);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+  };
+
   try {
     // ── 0. GLOBAL FLIGHT PLAN ──
+    const hasSynthesis = !!createPath;
     const visionStatus = photo ? 'with Multi-Modal Vision' : 'text-only';
     const voxStatus = voice || audio ? 'with Vox Audio' : 'silent';
-    const flightPlan = `🛫 *Global Flight Plan (Operation Beast-Mode)*\nMode: repo_orchestrator\nRepo: ${repo}\nInput: ${visionStatus}, ${voxStatus}\nModel: ${config.geminiModelFlash} (Intent) → ${config.geminiModel} (Synthesis)`;
+    const synthStatus = hasSynthesis ? `\nSynthesis Target: ${createPath}` : '\nSynthesis: meta-artifacts only';
+    const flightPlan = `🛫 *Global Flight Plan (Operation Beast-Mode)*\nMode: ${hasSynthesis ? 'DIRECT_SYNTHESIS' : 'repo_orchestrator'}\nRepo: ${repo}\nInput: ${visionStatus}, ${voxStatus}${synthStatus}\nModel: ${config.geminiModelFlash} (Intent) → ${config.geminiModel} (Synthesis)`;
     await emit('FLIGHT_PLAN', flightPlan);
+
+    if (progressFlow) {
+      await animateFlow(progressFlow);
+    }
 
     // ── 1. MULTI-MODAL PROCESSING ──
     const attachments = [];
@@ -257,12 +295,71 @@ export async function runGitHubPipeline({ taskId, chatId, repo, taskDescription,
 
     const input = { ...taskInput, repoAudit, defaultBranch: repoAudit.defaultBranch };
 
+    // ── 3. GENERATE: Synthesize real code if createPath is provided ──
+    let synthesizedContent = null;
+    let synthesizedFilePath = createPath || null;
+
+    if (hasSynthesis) {
+      await emit('GENERATE', `⚙️ BEAST-MODE: Synthesizing ${createPath} via Gemini Pro (max tokens: 65536)...`);
+
+      const fileExt = (createPath.split('.').pop() || 'py').toLowerCase();
+      const outputType = detectOutputType(createPath + ' ' + taskDescription);
+
+      const purposeBlock = purpose ? `\nPurpose: ${purpose}` : '';
+      const featuresBlock = features ? `\nRequired Features:\n${features.split(/[-•]/).filter(Boolean).map(f => `- ${f.trim()}`).join('\n')}` : '';
+
+      const synthSystemPrompt = `${awareness}\n\nYou are Antigravity Beast-Mode, a senior AI systems engineer generating production-ready code files for direct commit to GitHub repositories.\n\nCRITICAL RULES:\n- Output ONLY the raw file content. No markdown fences. No explanations. No preamble.\n- The output will be committed directly to ${repo} at path ${createPath}.\n- Make it MASSIVE, COMPLETE, and PRODUCTION-READY — not a skeleton.\n- Use extensive docstrings, comments, error handling, and type hints.\n- Use best practices for ${fileExt} files.\n- Generate the LARGEST, most comprehensive implementation possible within token limits.`;
+
+      const synthUserPrompt = `Repository: ${repo}\nFile to create: ${createPath}\nTask: ${taskDescription}${purposeBlock}${featuresBlock}\n\nRepo context:\n- Language: ${repoAudit.language}\n- README: ${repoAudit.readmeSnippet}\n\nGenerate the COMPLETE file content now. Output ONLY the code.`;
+
+      // Use 65536 max tokens for beast-mode synthesis
+      synthesizedContent = await callAntigravity(synthSystemPrompt, synthUserPrompt, config, 'synthesis', attachments, 65536);
+
+      // Strip markdown fences if the model wraps them anyway
+      synthesizedContent = synthesizedContent
+        .replace(/^```[\w]*\n?/gm, '')
+        .replace(/```\s*$/gm, '')
+        .trim();
+
+      // ── VALIDATION GATE: Reject garbage before committing ──
+      const lineCount = synthesizedContent.split('\n').length;
+      const charCount = synthesizedContent.length;
+
+      // Only check the FIRST 5 lines for API/runtime error patterns — not the whole file
+      // (legitimate code will contain 'Error', 'raise', 'except' etc. throughout)
+      const headerLines = synthesizedContent.split('\n').slice(0, 5).join('\n');
+      const looksLikeApiError = /^Sympify|^Traceback|^SyntaxError|^<!DOCTYPE|^{"error"/m.test(headerLines);
+      const isTooShort = lineCount < 10 || charCount < 200;
+
+      console.log(`[BEAST-MODE] Synthesis output: ${lineCount} lines, ${charCount} chars. First 80 chars: ${synthesizedContent.slice(0, 80).replace(/\n/g, '\\n')}`);
+
+      if (looksLikeApiError || isTooShort) {
+        const reason = looksLikeApiError ? 'Output starts with error patterns' : `Output too short (${lineCount} lines, ${charCount} chars)`;
+        await emit('GENERATE', `❌ BEAST-MODE VALIDATION FAILED: ${reason}. Aborting synthesis.`);
+        await emit('GENERATE', `Raw output preview: ${synthesizedContent.slice(0, 200)}`);
+        throw new Error(`Beast-Mode synthesis validation failed: ${reason}. Gemini returned garbage instead of code.`);
+      }
+
+      await emit('GENERATE', `✅ Synthesized ${lineCount} lines (${(charCount / 1024).toFixed(1)} KB) for \`${createPath}\` — validation passed`);
+
+      // Write synthesized file to local artifacts as well
+      const outputDir = path.join(config.artifactsDir, repo.replace('/', '__'));
+      await writeUserArtifact(outputDir, path.basename(createPath), synthesizedContent);
+    }
+
     await emit('GENERATE', 'Building orchestration package (Pro Engine)...');
     const codexPrompt  = buildCodexPrompt(input);
     const repairPrompt = buildRepairPrompt(input);
     const prPackage    = buildPrPackage(input);
     const executionPacket = buildExecutionPacket(input, prPackage);
     const prMarkdown   = [`Branch: ${prPackage.branch}`, `Title: ${prPackage.title}`, '', prPackage.body].join('\n');
+
+    // Update execution packet with synthesized file info
+    if (hasSynthesis) {
+      executionPacket.synthesized_file = createPath;
+      executionPacket.synthesized_size = synthesizedContent.length;
+      executionPacket.files_to_create = [...executionPacket.files_to_create, createPath];
+    }
 
     await emit('ARTIFACTS', 'Writing artifacts to disk.');
     const outputDir = path.join(config.artifactsDir, repo.replace('/', '__'));
@@ -287,6 +384,15 @@ export async function runGitHubPipeline({ taskId, chatId, repo, taskDescription,
             await createBranch(owner, repoName, prPackage.branch, baseSha, config);
           } else throw branchErr;
         }
+
+        // ── BEAST-MODE: Commit the REAL synthesized code file FIRST ──
+        if (synthesizedContent && synthesizedFilePath) {
+          await emit('PUSH', `📝 Committing synthesized file: \`${synthesizedFilePath}\` (${(synthesizedContent.length / 1024).toFixed(1)} KB)...`);
+          await commitFile(owner, repoName, synthesizedFilePath, synthesizedContent, `feat: ${taskDescription}`, prPackage.branch, config);
+          await emit('PUSH', `✅ \`${synthesizedFilePath}\` committed to ${prPackage.branch}`);
+        }
+
+        // Then commit meta-artifacts as secondary reference
         const artifactDir = `artifacts/${repo.replace('/', '__')}`;
         const files = {
           [`${artifactDir}/codex-task.md`]: codexPrompt,
@@ -297,8 +403,9 @@ export async function runGitHubPipeline({ taskId, chatId, repo, taskDescription,
         for (const [filePath, content] of Object.entries(files)) {
           await commitFile(owner, repoName, filePath, content, 'simba: add orchestration artifacts', prPackage.branch, config);
         }
+        const totalCommits = Object.keys(files).length + (synthesizedContent ? 1 : 0);
         pushResult = 'pushed';
-        await emit('PUSH', `Branch ${prPackage.branch} created with ${Object.keys(files).length} commits.`);
+        await emit('PUSH', `Branch ${prPackage.branch} created with ${totalCommits} commits.`);
       } catch (pushErr) {
         pushResult = `failed: ${pushErr.message}`;
         await emit('PUSH', `⚠ Push failed: ${pushErr.message}`);
@@ -306,14 +413,20 @@ export async function runGitHubPipeline({ taskId, chatId, repo, taskDescription,
     }
 
     // PR
-    let prUrl = null;
+    let prUrl = null, pr = null;
     if (dryRun) { await emit('PR', 'Dry-run: PR creation skipped.'); }
     else if (!config.allowLivePr) { await emit('PR', 'Live PR disabled.'); }
     else if (pushResult !== 'pushed') { await emit('PR', `PR skipped — push: ${pushResult}`); }
     else {
       await emit('PR', 'Opening pull request...');
       try {
-        const pr = await createPullRequest(owner, repoName, prPackage.branch, repoAudit.defaultBranch, prPackage.title, prPackage.body, config);
+        // Enrich PR body with synthesized file details
+        let prBody = prPackage.body;
+        if (hasSynthesis) {
+          const lineCount = synthesizedContent.split('\n').length;
+          prBody += `\n\n## Synthesized Files\n- \`${createPath}\` — ${lineCount} lines, ${(synthesizedContent.length / 1024).toFixed(1)} KB\n- Generated by Antigravity Beast-Mode (Gemini Pro)`;
+        }
+        pr = await createPullRequest(owner, repoName, prPackage.branch, repoAudit.defaultBranch, prPackage.title, prBody, config);
         prUrl = pr.url;
         await emit('PR', `PR opened: ${pr.url}`);
       } catch (prErr) {
@@ -329,10 +442,21 @@ export async function runGitHubPipeline({ taskId, chatId, repo, taskDescription,
     };
 
     const completedAt = new Date().toISOString();
-    await emit('COMPLETE', 'Pipeline finished (Beast-Mode active).');
+    await emit('COMPLETE', `Pipeline finished (Beast-Mode${hasSynthesis ? ' + Direct Synthesis' : ''}).`);
     await stateEngine.setTaskState(chatId, taskId, {
       status: 'success',
-      result: { summary: 'Pipeline completed', push: pushResult, prCreation: prUrl ? 'created' : 'skipped', prUrl: prUrl || null, artifactPaths, prPackage: { branch: prPackage.branch, title: prPackage.title }, repoAudit: { defaultBranch: repoAudit.defaultBranch, language: repoAudit.language }, metrics },
+      result: { 
+        summary: hasSynthesis ? `Synthesized \`${createPath}\` and pushed to ${repo}` : 'Pipeline completed',
+        push: pushResult, 
+        prCreation: prUrl ? 'created' : 'skipped', 
+        prUrl: prUrl || null, 
+        prNumber: pr?.number || null,
+        artifactPaths,
+        synthesizedFile: synthesizedFilePath || null,
+        prPackage: { branch: prPackage.branch, title: prPackage.title }, 
+        repoAudit: { defaultBranch: repoAudit.defaultBranch, language: repoAudit.language }, 
+        metrics 
+      },
       timestamps: { completedAt, updatedAt: completedAt },
     });
 
