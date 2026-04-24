@@ -100,7 +100,7 @@ function parseJsonTask(text) {
 }
 
 function parseYamlTask(text) {
-  const KNOWN_KEYS = new Set(['repo','target_repo','mode','task','description','constraints','goal']);
+  const KNOWN_KEYS = new Set(['repo','target_repo','mode','task','description','constraints','goal', 'create', 'modify', 'purpose', 'features']);
   const lines = text.split('\n');
   const map = {}; let lastKey = null;
   for (const rawLine of lines) {
@@ -122,7 +122,7 @@ function looksLikeInlineYaml(text) {
 }
 
 function parseInlineYaml(text) {
-  const KEY_PATTERN = /\b(repo|target_repo|mode|task|description|constraints|goal)\s*:/gi;
+  const KEY_PATTERN = /\b(repo|target_repo|mode|task|description|constraints|goal|create|modify|purpose|features)\s*:/gi;
   const segments = []; let match;
   while ((match = KEY_PATTERN.exec(text)) !== null) {
     if (segments.length > 0) segments[segments.length - 1].end = match.index;
@@ -148,7 +148,11 @@ function buildTaskFromMap(map) {
     mode: normalizeMode(map.mode || 'codex_then_antigravity'),
     taskDescription: clean(rawTask),
     constraints: clean(rawConstraints),
-    goal: clean(rawGoal)
+    goal: clean(rawGoal),
+    create: (map.create || '').trim(),
+    modify: (map.modify || '').trim(),
+    purpose: (map.purpose || '').trim(),
+    features: (map.features || '').trim()
   };
 }
 
