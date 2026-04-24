@@ -13,7 +13,7 @@ import { parseTaskMessage, parseUserTask, sanitizeTelegram, truncateForTelegram 
 import { runUserPipeline, runGitHubPipeline, STAGES } from './execution-pipeline.js';
 import { TaskStatus } from './state-engine.js';
 import { formatFileCaption } from './file-exporter.js';
-import { listOwnerRepos, inspectRepository, listRepoBranches, deleteBranch } from './github.js';
+import { listOwnerRepos, inspectRepository, listRepoBranches, deleteBranch, mergePullRequest } from './github.js';
 import { generateTasks, generateNextTask, getCatalogSummary, formatTaskListForTelegram, formatTaskForTelegram, TOOL_CATALOG, discoverMissingTools, fetchAllRegisteredTools, formatRegistryReport, formatMissingToolsReport } from './task-generator.js';
 import { startLoop, stopLoop, getLoopStatus } from './task-loop.js';
 import { MemoryManager } from './memory.js';
@@ -530,6 +530,9 @@ export class CommandRouter {
 
   async handleCallback({ chatId, callbackQueryId, data }) {
     try {
+      if (data.startsWith('commander:')) {
+        return await this._handleCommanderCallback({ chatId, data });
+      }
       if (!data.startsWith('run:') && !data.startsWith('cancel:')) return;
       const chat = await this.stateEngine.getChatState(chatId);
       const pending = chat.pendingPreview;
@@ -566,6 +569,46 @@ export class CommandRouter {
     }
   }
 
+  async _handleCommanderCallback({ chatId, data }) {
+    const parts = data.split(':');
+    const action = parts[1];
+    const taskId = parts[2];
+    
+    if (!taskId) return;
+    const task = await this.stateEngine.getTask(chatId, taskId);
+    if (!task) { await this.tg.sendMessage(chatId, 'Task not found.'); return; }
+
+    if (action === 'close') {
+      await this.tg.sendMessage(chatId, `✕ Closed task: ${taskId.slice(0, 8)}`);
+      return;
+    }
+
+    if (action === 'merge') {
+      if (!task.result?.prNumber || !task.repo) {
+        await this.tg.sendMessage(chatId, '❌ No PR available for this task.');
+        return;
+      }
+      const [owner, repoName] = task.repo.split('/');
+      await this.tg.sendMessage(chatId, `⌛ Merging PR #${task.result.prNumber} in ${task.repo}...`);
+      try {
+        await mergePullRequest(owner, repoName, task.result.prNumber, this.config);
+        await this.tg.sendMessage(chatId, `✅ PR #${task.result.prNumber} merged successfully!`);
+        // Optional: cleanup branch
+        if (task.result.prPackage?.branch) {
+          await deleteBranch(owner, repoName, task.result.prPackage.branch, this.config).catch(() => {});
+        }
+      } catch (err) {
+        await this.tg.sendMessage(chatId, `❌ Merge failed: ${err.message}`);
+      }
+      return;
+    }
+
+    if (action === 'tweak') {
+      await this.tg.sendMessage(chatId, '🔄 Tweak mode: Reply with your adjustments.');
+      return;
+    }
+  }
+
   async _sendTaskResult(chatId, task) {
     if (!task) { await this.tg.sendMessage(chatId, 'No task result.'); return; }
     if (task.status === 'success') {
@@ -592,3 +635,4 @@ export class CommandRouter {
     }
   }
 }
+

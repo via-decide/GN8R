@@ -150,3 +150,14 @@ export async function listRepoBranches(owner, repo, config, prefix = '') {
     return [];
   }
 }
+
+export async function mergePullRequest(owner, repo, prNumber, config) {
+  return githubRequest(`/repos/${owner}/${repo}/pulls/${prNumber}/merge`, config, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      merge_method: 'merge',
+      commit_title: `bot: merge PR #${prNumber}`,
+    }),
+  });
+}

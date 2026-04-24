@@ -109,23 +109,42 @@ function isGujarati(text) {
 }
 
 /**
+ * Cleans a string that might contain JSON wrapped in markdown or with Python-isms.
+ * @param {string} text 
+ * @returns {string}
+ */
+function cleanJsonResponse(text) {
+  // 1. Remove markdown blocks
+  let cleaned = text.replace(/```json\s*/gi, '').replace(/```/g, '').trim();
+  
+  // 2. Fix common Python-to-JSON issues from local LLMs
+  cleaned = cleaned.replace(/:\s*None\b/g, ': null');
+  cleaned = cleaned.replace(/:\s*True\b/g, ': true');
+  cleaned = cleaned.replace(/:\s*False\b/g, ': false');
+  
+  return cleaned;
+}
+
+/**
  * Main entry point: calls Zayvora with RAG augmentation when available,
- * falls back to direct Ollama when the RAG server is offline.
+ * falls back to direct Ollama when the RAG server is offline or for non-engineering tasks.
  * 
  * @param {string} prompt - The user's question or research query
  * @param {object} config - Bot configuration (ollamaUrl, ollamaModel, etc.)
+ * @param {string} [modelType='general'] - 'synthesis', 'intent', or 'engineering'
  * @returns {Promise<string>} - The response text
  */
-export async function callZayvora(prompt, config) {
+export async function callZayvora(prompt, config, modelType = 'general') {
   try {
     const ragAvailable = await isRAGAvailable();
 
-    if (ragAvailable) {
-      console.log('[Zayvora] 3-Layer Engine detected — entering deterministic mode');
+    // ONLY use the 3rd Layer Engineering Pipeline if specifically requested or if it looks like math/physics
+    const isEngineering = modelType === 'engineering' || (prompt.toLowerCase().includes('solve') && (prompt.includes('=') || prompt.includes('calculate')));
+
+    if (ragAvailable && isEngineering) {
+      console.log('[Zayvora] Engineering Mode active — entering deterministic mode');
 
       const lang = isGujarati(prompt) ? 'gu' : 'en';
-      console.log(`[Zayvora] Detected Language: ${lang}`);
-
       const extractionPrompt = `### TASK: Engineering Problem Extraction
 Extract the physics from this problem into a valid JSON schema for the Zayvora Deterministic Engine.
 
@@ -146,16 +165,17 @@ Required JSON format:
 JSON ONLY. NO CHAT. NO EXPLANATION.`;
 
       const rawExtraction = await callDirect(extractionPrompt, config);
+      const cleaned = cleanJsonResponse(rawExtraction);
       
-      // Clean up Ollama's occasional markdown blocks
-      const jsonMatch = rawExtraction.match(/\{[\s\S]*\}/);
+      const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
         throw new Error('Failed to extract structured physics from prompt.');
       }
+      
       const problemSchema = JSON.parse(jsonMatch[0]);
       console.log('[Zayvora] Extracted Schema:', JSON.stringify(problemSchema, null, 2));
 
-      // 2. SOLVE: Execute via the 3rd layer Physics Guardian
+      // Execute via the 3rd layer Physics Guardian
       const res = await fetch(`${RAG_SERVER_URL}/solve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -169,15 +189,15 @@ JSON ONLY. NO CHAT. NO EXPLANATION.`;
 
       const data = await res.json();
       
-    if (data.status === "REJECTED") {
-      const violations = data.layer_3?.checks?.physics_constraints?.violations || [];
-      const magCheck = data.layer_3?.checks?.magnitude_check;
-      let rejectMsg = `⚠️ **ENGINEERING REJECTION**: ${data.message}`;
-      if (violations.length > 0) rejectMsg += `\n\n**Violations:**\n• ${violations.join('\n• ')}`;
-      if (magCheck && !magCheck.passed) rejectMsg += `\n\n**Magnitude Warning:** Result deviated by ${magCheck.log10_deviation} decades from expectation.`;
-      
-      return rejectMsg;
-    }
+      if (data.status === "REJECTED") {
+        const violations = data.layer_3?.checks?.physics_constraints?.violations || [];
+        const magCheck = data.layer_3?.checks?.magnitude_check;
+        let rejectMsg = `⚠️ **ENGINEERING REJECTION**: ${data.message}`;
+        if (violations.length > 0) rejectMsg += `\n\n**Violations:**\n• ${violations.join('\n• ')}`;
+        if (magCheck && !magCheck.passed) rejectMsg += `\n\n**Magnitude Warning:** Result deviated by ${magCheck.log10_deviation} decades from expectation.`;
+        
+        return rejectMsg;
+      }
 
       let response = data.final_answer?.display_result || data.message || '';
       if (data.status === "VERIFIED") {
@@ -186,9 +206,16 @@ JSON ONLY. NO CHAT. NO EXPLANATION.`;
       return response;
     }
 
-    // STRICT ENFORCEMENT: No direct fallback for engineering queries
-    console.log('[Zayvora] 3-Layer Engine offline — blocking unverified response');
-    throw new Error('Engineering Reasoning Engine is offline. Cannot provide a verified response.');
+    // GENERAL SYNTHESIS / INTENT PATH
+    console.log(`[Zayvora] ${modelType.toUpperCase()} Mode active — direct local synthesis`);
+    const response = await callDirect(prompt, config);
+    
+    // If it's a JSON-only mode (intent), clean it before returning
+    if (modelType === 'intent') {
+      return cleanJsonResponse(response);
+    }
+    
+    return response;
 
   } catch (err) {
     if (err.message.includes('ECONNREFUSED')) {

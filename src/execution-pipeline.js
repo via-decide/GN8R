@@ -55,7 +55,7 @@ async function callAntigravity(systemPrompt, userPrompt, config, modelType = 'sy
     console.log(`[Engine] Routing ${modelType} request to ZAYVORA (Ollama) [Sovereign Mode]...`);
     const prompt = `SYSTEM: ${systemPrompt}\n\nUSER: ${userPrompt}`;
     try {
-      const resp = await callZayvora(prompt, config);
+      const resp = await callZayvora(prompt, config, modelType);
       if (resp) return resp;
     } catch (err) {
       console.warn(`[Engine] Zayvora failed or unreachable: ${err.message}.`);
