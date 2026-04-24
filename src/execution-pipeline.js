@@ -302,7 +302,8 @@ export async function runGitHubPipeline({ taskId, chatId, repo, taskDescription,
     let synthesizedFilePath = createPath || null;
 
     if (hasSynthesis) {
-      await emit('GENERATE', `⚙️ BEAST-MODE: Synthesizing ${createPath} via Gemini Pro (max tokens: 65536)...`);
+      const engineName = config.useLocalBrain ? 'Zayvora' : 'Gemini Pro';
+      await emit('GENERATE', `⚙️ BEAST-MODE: Synthesizing ${createPath} via ${engineName} (max tokens: 65536)...`);
 
       const fileExt = (createPath.split('.').pop() || 'py').toLowerCase();
       const outputType = detectOutputType(createPath + ' ' + taskDescription);
