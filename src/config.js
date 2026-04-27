@@ -1,6 +1,6 @@
 import 'dotenv/config';
 
-const REQUIRED = ['TELEGRAM_BOT_TOKEN', 'GEMINI_API_KEY'];
+const REQUIRED = ['TELEGRAM_BOT_TOKEN'];
 
 export function loadConfig() {
   const missing = REQUIRED.filter(k => !process.env[k]);
@@ -15,13 +15,6 @@ export function loadConfig() {
     // Telegram
     telegramToken:    process.env.TELEGRAM_BOT_TOKEN,
     pollIntervalMs:   Number(process.env.TELEGRAM_POLL_INTERVAL_MS || 3000),
-
-    // Antigravity (Gemini)
-    geminiApiKey:      process.env.GEMINI_API_KEY || '',
-    geminiModel:       process.env.GEMINI_MODEL || 'gemini-1.5-pro',
-    geminiModelFlash:  process.env.GEMINI_MODEL_FLASH || 'gemini-1.5-flash',
-    geminiMaxTokens:   8192,
-    geminiApiBaseUrl:  process.env.GEMINI_API_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta',
 
     // GitHub
     githubToken:      process.env.GITHUB_TOKEN || '',
@@ -47,8 +40,10 @@ export function loadConfig() {
     taskTimeoutMs:    Number(process.env.SIMBA_TASK_TIMEOUT_MS || 120_000),
 
     // Local Brain (Zayvora)
-    useLocalBrain:    process.env.USE_LOCAL_BRAIN === 'true',
+    useLocalBrain:    true,
     ollamaUrl:        process.env.OLLAMA_URL || 'http://localhost:11434/api/generate',
     ollamaModel:      process.env.OLLAMA_MODEL || 'Zayvora',
+    numCtx:           Number(process.env.OLLAMA_NUM_CTX || 32768),
+    numPredict:       Number(process.env.OLLAMA_NUM_PREDICT || 16384),
   };
 }

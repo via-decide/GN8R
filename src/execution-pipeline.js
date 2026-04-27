@@ -3,7 +3,7 @@
  *
  * TWO pipelines in one:
  *
- * 1. runUserPipeline()   — generates a file for a regular user via Antigravity (Gemini)
+ * 1. runUserPipeline()   — generates a file for a regular user via Zayvora (Ollama)
  *    PLAN → AUDIT → GENERATE → BUILD → RETURN
  *
  * 2. runGitHubPipeline() — full Simba-style GitHub orchestration
@@ -14,7 +14,7 @@ import path from 'node:path';
 import fs from 'node:fs/promises';
 import { TaskStatus } from './state-engine.js';
 import { buildEngineContext } from './engine-bridge.js';
-import { detectOutputType, buildFilename } from './task-parser.js';
+import { detectOutputType, buildFilename, detectTaskShape } from './task-parser.js';
 import { buildCodexPrompt, buildRepairPrompt, buildPrPackage, buildExecutionPacket, buildUserFilePrompt } from './templates.js';
 import { writeArtifacts, writeUserArtifact } from './artifacts.js';
 import { inspectRepository, getBranchSha, createBranch, commitFile, createPullRequest, deleteBranch } from './github.js';
@@ -46,76 +46,16 @@ async function downloadTelegramFile(token, fileId) {
 }
 
 import { callZayvora } from './zayvora-bridge.js';
+import archiver from 'archiver';
+import { createWriteStream } from 'node:fs';
 
-async function callAntigravity(systemPrompt, userPrompt, config, modelType = 'synthesis', attachments = [], maxTokensOverride = null) {
-  // SOVEREIGN PRIMARY: Always attempt Zayvora (Ollama) first if enabled.
-  // We now route even "Beast-Mode" synthesis to the local engine for full sovereignty.
-  const useZayvora = config.useLocalBrain;
-  if (useZayvora) {
-    console.log(`[Engine] Routing ${modelType} request to ZAYVORA (Ollama) [Sovereign Mode]...`);
-    const prompt = `SYSTEM: ${systemPrompt}\n\nUSER: ${userPrompt}`;
-    try {
-      const resp = await callZayvora(prompt, config, modelType);
-      if (resp) return resp;
-    } catch (err) {
-      console.warn(`[Engine] Zayvora failed or unreachable: ${err.message}.`);
-      if (!config.geminiApiKey) throw new Error('Zayvora failed and no Gemini fallback is configured.');
-      console.log('[Engine] Falling back to Gemini secondary...');
-    }
-  }
-
-  if (!config.geminiApiKey) throw new Error('GEMINI_API_KEY is not configured and Zayvora is unavailable.');
-  
-  const model = modelType === 'intent' 
-    ? (config.geminiModelFlash || 'gemini-1.5-flash')
-    : (config.geminiModel || 'gemini-1.5-pro');
-    
-  const baseUrl = config.geminiApiBaseUrl || 'https://generativelanguage.googleapis.com/v1beta';
-  const url = `${baseUrl}/models/${model}:generateContent`;
-
-  const parts = [{ text: userPrompt }];
-  
-  // Add multi-modal attachments if any
-  for (const att of attachments) {
-    if (att.mimeType && att.data) {
-      parts.push({
-        inline_data: {
-          mime_type: att.mimeType,
-          data: att.data // base64
-        }
-      });
-    }
-  }
-
-  const tokenLimit = maxTokensOverride || config.geminiMaxTokens || 8192;
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-goog-api-key': config.geminiApiKey,
-    },
-    body: JSON.stringify({
-      system_instruction: { parts: [{ text: systemPrompt }] },
-      contents: [{ role: 'user', parts }],
-      generationConfig: {
-        maxOutputTokens: tokenLimit,
-        temperature: modelType === 'intent' ? 0.3 : 0.7,
-      },
-    }),
-  });
-  if (!res.ok) { const t = await res.text(); throw new Error(`Antigravity API (${model}) ${res.status}: ${t}`); }
-  const data = await res.json();
-  const candidate = data.candidates?.[0];
-  if (!candidate) throw new Error('Antigravity returned no candidates.');
-  
-  // Check for blocked/filtered responses
-  if (candidate.finishReason === 'SAFETY') throw new Error('Antigravity response blocked by safety filter.');
-  
-  return candidate.content?.parts?.map(p => p.text).join('') || '';
+async function callSynthesis(systemPrompt, userPrompt, config, modelType = 'synthesis', attachments = [], numPredict = 16384) {
+  const prompt = `SYSTEM: ${systemPrompt}\n\nUSER: ${userPrompt}`;
+  console.log(`[Engine] ${modelType} → Zayvora (Ollama, num_predict=${numPredict})`);
+  return await callZayvora(prompt, { ...config, numPredict }, modelType);
 }
 
-// ── 1. USER FILE GENERATION PIPELINE (Antigravity) ───────────
+// ── 1. USER FILE GENERATION PIPELINE (Zayvora) ───────────────
 
 export async function runUserPipeline(task, config, stateEngine, memoryManager, onProgress) {
   const taskId = task.id || `task_${Date.now()}`;
@@ -132,10 +72,20 @@ export async function runUserPipeline(task, config, stateEngine, memoryManager, 
     // ── 0. GLOBAL FLIGHT PLAN ──
     const visionStatus = task.photo ? 'with Multi-Modal Vision' : 'text-only';
     const voxStatus = task.voice || task.audio ? 'with Vox Audio' : 'silent';
-    const engineName = config.useLocalBrain ? `Zayvora (${config.ollamaModel})` : 'Gemini Pro';
+    const engineName = `Zayvora (${config.ollamaModel})`;
     const flightPlan = `🛫 *Global Flight Plan (Operation Beast-Mode)*\nMode: synthesis_orchestrator\nInput: ${visionStatus}, ${voxStatus}\nEngine: ${engineName}`;
     onProgress?.(flightPlan);
     await stateEngine.appendLog(chatId, { taskId, stage: 'FLIGHT_PLAN', details: flightPlan });
+
+    const shape = detectTaskShape(task.description);
+    if (shape.shape === 'multi-file') {
+      onProgress?.(`📂 Multi-file task: ${shape.files.length} files. Forking to multi-file pipeline.`);
+      return await runMultiFilePipeline(task, shape, config, stateEngine, memoryManager, onProgress);
+    }
+    if (shape.shape === 'chunked') {
+      onProgress?.(`🔗 Chunked-protocol task. Forking to chunked pipeline.`);
+      return await runChunkedPipeline(task, shape, config, stateEngine, memoryManager, onProgress);
+    }
 
     // ── 1. MULTI-MODAL PROCESSING ──
     const attachments = [];
@@ -155,8 +105,8 @@ export async function runUserPipeline(task, config, stateEngine, memoryManager, 
     onProgress?.('🧠 Activating Beast Brain (Synapse self-history)...');
     const awareness = await synapse.buildAwarenessContext();
 
-    // ── 3. PLAN (Intent Deconstruction - Gemini Flash) ──
-    onProgress?.('📋 Planning task (Flash Engine)...');
+    // ── 3. PLAN (Intent Deconstruction) ──
+    onProgress?.('📋 Planning task...');
     const outputType = detectOutputType(task.description);
     const filename   = buildFilename(task.description, outputType);
     const engineCtx  = await buildEngineContext(config.engineBaseUrl);
@@ -165,7 +115,7 @@ export async function runUserPipeline(task, config, stateEngine, memoryManager, 
     const planPrompt = `Engine context:\n${engineCtx}\n\nUser task: "${task.description}"\nOutput type: ${outputType}\n\nRespond:\n{"title":"...","outputType":"${outputType}","outputFilename":"${filename}","steps":["..."],"complexity":"low|medium|high"}`;
     let plan = { title: task.description.slice(0, 50), outputType, outputFilename: filename, steps: ['Generate content', 'Build artifact'], complexity: 'medium' };
     try {
-      const raw = await callAntigravity(planSystem, planPrompt, config, 'intent', attachments);
+      const raw = await callSynthesis(planSystem, planPrompt, config, 'intent', attachments);
       const cleaned = raw.replace(/```json\s*/gi, '').replace(/```/g, '').trim();
       plan = { ...plan, ...JSON.parse(cleaned) };
     } catch {}
@@ -173,8 +123,8 @@ export async function runUserPipeline(task, config, stateEngine, memoryManager, 
     await stateEngine.setTaskState(chatId, taskId, { status: TaskStatus.AUDITING, currentStage: 'AUDIT', plan });
     await stateEngine.appendLog(chatId, { taskId, stage: 'PLAN', details: `Plan: ${plan.title}` });
 
-    // ── 4. GENERATE (Final Synthesis - Gemini Pro) ──
-    onProgress?.(`⚙️ Synthesizing ${outputType.toUpperCase()} file (Pro Engine)...`);
+    // ── 4. GENERATE (Final Synthesis - Zayvora) ──
+    onProgress?.(`⚙️ Synthesizing ${outputType.toUpperCase()} file via Zayvora...`);
     await stateEngine.setTaskState(chatId, taskId, { status: TaskStatus.GENERATING, currentStage: 'GENERATE' });
 
     const memCtx = memoryManager ? await memoryManager.buildContext(task.userId) : '';
@@ -182,7 +132,7 @@ export async function runUserPipeline(task, config, stateEngine, memoryManager, 
       ? `User context:\n${memCtx}\n\nTask: ${task.description}`
       : task.description;
 
-    const content = await callAntigravity(buildUserFilePrompt(enrichedDescription, outputType), `Generate the complete ${outputType} file for: ${enrichedDescription}`, config, 'synthesis', attachments);
+    const content = await callSynthesis(buildUserFilePrompt(enrichedDescription, outputType), `Generate the complete ${outputType} file for: ${enrichedDescription}`, config, 'synthesis', attachments);
     await stateEngine.appendLog(chatId, { taskId, stage: 'GENERATE', details: `Generated ${content.length} chars` });
 
     // ── 5. BUILD ──
@@ -219,7 +169,7 @@ export async function runUserPipeline(task, config, stateEngine, memoryManager, 
 }
 
 // ── 2. GITHUB ORCHESTRATION PIPELINE (from Simba) ────────────
-//    BEAST-MODE: Now synthesizes REAL code files via Gemini and commits them directly.
+//    BEAST-MODE: Now synthesizes REAL code files via Zayvora (Ollama) and commits them directly.
 
 export async function runGitHubPipeline({ taskId, chatId, repo, taskDescription, constraints, goal, progressFlow, mode, dryRun, config, stateEngine, onStageUpdate, photo, voice, audio, createPath, purpose, features }) {
   const startedAt = new Date().toISOString();
@@ -253,8 +203,7 @@ export async function runGitHubPipeline({ taskId, chatId, repo, taskDescription,
     const visionStatus = photo ? 'with Multi-Modal Vision' : 'text-only';
     const voxStatus = voice || audio ? 'with Vox Audio' : 'silent';
     const synthStatus = hasSynthesis ? `\nSynthesis Target: ${createPath}` : '\nSynthesis: meta-artifacts only';
-    const engineName = config.useLocalBrain ? `Zayvora (${config.ollamaModel})` : 'Gemini Pro';
-    const flightPlan = `🛫 *Global Flight Plan (Operation Beast-Mode)*\nMode: ${hasSynthesis ? 'DIRECT_SYNTHESIS' : 'repo_orchestrator'}\nRepo: ${repo}\nInput: ${visionStatus}, ${voxStatus}${synthStatus}\nEngine: ${engineName}`;
+    const flightPlan = `🛫 *Global Flight Plan (Operation Beast-Mode)*\nMode: ${hasSynthesis ? 'DIRECT_SYNTHESIS' : 'repo_orchestrator'}\nRepo: ${repo}\nInput: ${visionStatus}, ${voxStatus}${synthStatus}\nEngine: Zayvora (${config.ollamaModel})`;
     await emit('FLIGHT_PLAN', flightPlan);
 
     if (progressFlow) {
@@ -302,8 +251,7 @@ export async function runGitHubPipeline({ taskId, chatId, repo, taskDescription,
     let synthesizedFilePath = createPath || null;
 
     if (hasSynthesis) {
-      const engineName = config.useLocalBrain ? 'Zayvora' : 'Gemini Pro';
-      await emit('GENERATE', `⚙️ BEAST-MODE: Synthesizing ${createPath} via ${engineName} (max tokens: 65536)...`);
+      await emit('GENERATE', `⚙️ BEAST-MODE: Synthesizing ${createPath} via Zayvora (max tokens: 65536)...`);
 
       const fileExt = (createPath.split('.').pop() || 'py').toLowerCase();
       const outputType = detectOutputType(createPath + ' ' + taskDescription);
@@ -311,12 +259,11 @@ export async function runGitHubPipeline({ taskId, chatId, repo, taskDescription,
       const purposeBlock = purpose ? `\nPurpose: ${purpose}` : '';
       const featuresBlock = features ? `\nRequired Features:\n${features.split(/[-•]/).filter(Boolean).map(f => `- ${f.trim()}`).join('\n')}` : '';
 
-      const synthSystemPrompt = `${awareness}\n\nYou are Antigravity Beast-Mode, a senior AI systems engineer generating production-ready code files for direct commit to GitHub repositories.\n\nCRITICAL RULES:\n- Output ONLY the raw file content. No markdown fences. No explanations. No preamble.\n- The output will be committed directly to ${repo} at path ${createPath}.\n- Make it MASSIVE, COMPLETE, and PRODUCTION-READY — not a skeleton.\n- Use extensive docstrings, comments, error handling, and type hints.\n- Use best practices for ${fileExt} files.\n- Generate the LARGEST, most comprehensive implementation possible within token limits.`;
+      const synthSystemPrompt = `${awareness}\n\nYou are Zayvora Beast-Mode, sovereign local synthesis engine generating production-ready code files for direct commit to GitHub repositories.\n\nCRITICAL RULES:\n- Output ONLY the raw file content. No markdown fences. No explanations. No preamble.\n- The output will be committed directly to ${repo} at path ${createPath}.\n- Make it MASSIVE, COMPLETE, and PRODUCTION-READY — not a skeleton.\n- Use extensive docstrings, comments, error handling, and type hints.\n- Use best practices for ${fileExt} files.\n- Generate the LARGEST, most comprehensive implementation possible within token limits.`;
 
       const synthUserPrompt = `Repository: ${repo}\nFile to create: ${createPath}\nTask: ${taskDescription}${purposeBlock}${featuresBlock}\n\nRepo context:\n- Language: ${repoAudit.language}\n- README: ${repoAudit.readmeSnippet}\n\nGenerate the COMPLETE file content now. Output ONLY the code.`;
 
-      // Use 65536 max tokens for beast-mode synthesis
-      synthesizedContent = await callAntigravity(synthSystemPrompt, synthUserPrompt, config, 'synthesis', attachments, 65536);
+      synthesizedContent = await callSynthesis(synthSystemPrompt, synthUserPrompt, config, 'synthesis', attachments, 65536);
 
       // Strip markdown fences if the model wraps them anyway
       synthesizedContent = synthesizedContent
@@ -340,7 +287,7 @@ export async function runGitHubPipeline({ taskId, chatId, repo, taskDescription,
         const reason = looksLikeApiError ? 'Output starts with error patterns' : `Output too short (${lineCount} lines, ${charCount} chars)`;
         await emit('GENERATE', `❌ BEAST-MODE VALIDATION FAILED: ${reason}. Aborting synthesis.`);
         await emit('GENERATE', `Raw output preview: ${synthesizedContent.slice(0, 200)}`);
-        throw new Error(`Beast-Mode synthesis validation failed: ${reason}. Gemini returned garbage instead of code.`);
+        throw new Error(`Beast-Mode synthesis validation failed: ${reason}. Zayvora returned garbage instead of code.`);
       }
 
       await emit('GENERATE', `✅ Synthesized ${lineCount} lines (${(charCount / 1024).toFixed(1)} KB) for \`${createPath}\` — validation passed`);
@@ -427,7 +374,7 @@ export async function runGitHubPipeline({ taskId, chatId, repo, taskDescription,
         let prBody = prPackage.body;
         if (hasSynthesis) {
           const lineCount = synthesizedContent.split('\n').length;
-          prBody += `\n\n## Synthesized Files\n- \`${createPath}\` — ${lineCount} lines, ${(synthesizedContent.length / 1024).toFixed(1)} KB\n- Generated by Antigravity Beast-Mode (Gemini Pro)`;
+          prBody += `\n\n## Synthesized Files\n- \`${createPath}\` — ${lineCount} lines, ${(synthesizedContent.length / 1024).toFixed(1)} KB\n- Generated by Zayvora Beast-Mode (Ollama, local)`;
         }
         pr = await createPullRequest(owner, repoName, prPackage.branch, repoAudit.defaultBranch, prPackage.title, prBody, config);
         prUrl = pr.url;
@@ -475,4 +422,96 @@ export async function runGitHubPipeline({ taskId, chatId, repo, taskDescription,
     await onStageUpdate({ stage: 'FAILED', details: `❌ ${err.message}`, taskId, repo, dryRun });
     return await stateEngine.getTask(chatId, taskId);
   }
+}
+
+// ── 3. MULTI-FILE PIPELINE (Sovereign, Zayvora-only) ─────────
+async function runMultiFilePipeline(task, shape, config, stateEngine, memoryManager, onProgress) {
+  const taskId = task.id || `task_${Date.now()}`;
+  const chatId = task.userId;
+  const startedTs = Date.now();
+  const generated = [];
+
+  for (const filePath of shape.files) {
+    const ext = filePath.split('.').pop().toLowerCase();
+    const outputType = ext === 'yaml' ? 'yml' : ext;
+    onProgress?.(`⚙️ Generating ${filePath} (${outputType}) via Zayvora...`);
+
+    const fileSpecificPrompt = `From this multi-file task, generate ONLY the file at path: ${filePath}\n\nFull task context:\n${task.description}\n\nOutput ONLY raw file content for ${filePath}. No fences. No explanations. No other files.`;
+    const sysPrompt = buildUserFilePrompt(fileSpecificPrompt, outputType);
+
+    try {
+      const content = await callSynthesis(sysPrompt, fileSpecificPrompt, config, 'synthesis', [], 16384);
+      const cleaned = content.replace(/^```[\w]*\n?/gm, '').replace(/```\s*$/gm, '').trim();
+      generated.push({ path: filePath, content: cleaned, outputType, size: Buffer.byteLength(cleaned, 'utf8') });
+    } catch (err) {
+      onProgress?.(`⚠ Failed ${filePath}: ${err.message}`);
+      generated.push({ path: filePath, content: `// GENERATION FAILED: ${err.message}`, outputType, size: 0, failed: true });
+    }
+  }
+
+  const outputDir = path.join(config.artifactsDir, 'user-files', taskId);
+  await fs.mkdir(outputDir, { recursive: true });
+  for (const f of generated) {
+    const full = path.join(outputDir, f.path);
+    await fs.mkdir(path.dirname(full), { recursive: true });
+    await fs.writeFile(full, f.content, 'utf8');
+  }
+
+  const zipPath = path.join(config.artifactsDir, 'user-files', `${taskId}_multifile.zip`);
+  await new Promise((resolve, reject) => {
+    const output = createWriteStream(zipPath);
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    output.on('close', resolve);
+    archive.on('error', reject);
+    archive.pipe(output);
+    archive.directory(outputDir, false);
+    archive.finalize();
+  });
+
+  const metrics = {
+    fileCount: generated.length,
+    failedCount: generated.filter(f => f.failed).length,
+    duration: ((Date.now() - startedTs) / 1000).toFixed(1) + 's',
+    engine: 'Zayvora',
+  };
+
+  await stateEngine.setTaskState(chatId, taskId, {
+    status: TaskStatus.DONE, currentStage: 'COMPLETE',
+    result: { artifacts: [{ filename: path.basename(zipPath), filepath: zipPath, isZip: true, fileList: generated.map(g => g.path) }], metrics },
+    timestamps: { completedAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  });
+
+  return { success: true, multiFile: true, artifacts: [{ filepath: zipPath, isZip: true }], generated, metrics };
+}
+
+// ── 4. CHUNKED-PROTOCOL PIPELINE (Sovereign, Zayvora-only) ───
+async function runChunkedPipeline(task, shape, config, stateEngine, memoryManager, onProgress) {
+  if (shape.files.length >= 1) {
+    onProgress?.(`🔗 Chunked task with ${shape.files.length} declared files — routing through multi-file pipeline.`);
+    return await runMultiFilePipeline(task, shape, config, stateEngine, memoryManager, onProgress);
+  }
+  const taskId = task.id || `task_${Date.now()}`;
+  const chatId = task.userId;
+  let buffer = '';
+  let n = 0;
+  const MAX = 5;
+  let prompt = `${task.description}\n\nGenerate the FIRST chunk now.`;
+  while (n < MAX) {
+    const part = await callSynthesis(buildUserFilePrompt(task.description, 'md'), prompt, config, 'synthesis', [], 16384);
+    buffer += part;
+    if (/\/\/ \[COMPLETE\]/.test(part)) break;
+    if (!/\/\/ \[CONTINUES\]/.test(part)) break;
+    n++;
+    prompt = `Continue from where you stopped. Previous output ended with:\n${part.slice(-500)}\n\nGenerate the NEXT chunk now.`;
+    onProgress?.(`🔗 Continuation ${n}/${MAX}...`);
+  }
+
+  const outputDir = path.join(config.artifactsDir, 'user-files');
+  const filepath = await writeUserArtifact(outputDir, `${taskId}_chunked.md`, buffer);
+  await stateEngine.setTaskState(chatId, taskId, {
+    status: TaskStatus.DONE, currentStage: 'COMPLETE',
+    result: { artifacts: [{ filename: `${taskId}_chunked.md`, content: buffer, filepath, size: buffer.length }] },
+    timestamps: { completedAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  });
+  return { success: true, chunked: true, continuations: n, artifacts: [{ filepath, content: buffer }] };
 }

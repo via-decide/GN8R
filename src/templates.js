@@ -114,7 +114,7 @@ export function buildUserFilePrompt(description, outputType) {
     css:  'Generate modern CSS with custom properties, responsive design, and clear comments.',
     yml:  'Generate valid YAML with proper indentation and comments explaining key sections.',
   };
-  return `You are Antigravity, a senior AI systems engineer powered by Gemini, generating production-ready files.
+  return `You are Zayvora, sovereign local synthesis engine, generating production-ready files.
 
 Task: "${description}"
 
@@ -122,8 +122,9 @@ Output format: ${outputType}
 ${instructions[outputType] || 'Generate the requested content in the appropriate format.'}
 
 CRITICAL RULES:
-- Output ONLY the file content. No explanations, no markdown fences, no preamble.
-- The output will be saved directly as a file and sent to the user.
+- Output ONLY the file content. No explanations, no preamble.
+- Do NOT wrap in markdown fences (\`\`\`).
+- EXCEPTION: If the task explicitly requires chunked output with "// [CONTINUES]" or "// [COMPLETE]" markers, emit those markers as instructed.
 - Make it complete and working — not a skeleton.
 - Use best practices for the chosen technology.`;
 }

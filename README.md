@@ -23,7 +23,8 @@ npm start
 **Minimum `.env` to run:**
 ```
 TELEGRAM_BOT_TOKEN=your_token_from_botfather
-GEMINI_API_KEY=your_gemini_api_key
+OLLAMA_URL=http://localhost:11434/api/generate
+OLLAMA_MODEL=Zayvora
 ```
 
 **To enable GitHub features:**
@@ -134,15 +135,16 @@ task-parser.js     — YAML/JSON/inline task parser + sanitization
 
 ---
 
-## Antigravity Integration
+## Zayvora Integration (Sovereign)
 
-This bot uses **Antigravity (Gemini)** as its AI backend:
+This bot uses **Zayvora** as its sole AI backend:
 
-- **Model**: `gemini-2.5-pro-preview-05-06` (configurable via `GEMINI_MODEL`)
-- **API**: Google Generative Language API (`generativelanguage.googleapis.com/v1beta`)
-- **System instructions**: Passed via `system_instruction` field for structured prompting
-- **Max tokens**: 8192 (configurable via env)
-- Used for: task planning, file content generation, and code generation
+- **Engine:** Ollama (local), model `Zayvora` (configurable via `OLLAMA_MODEL`)
+- **URL:** `http://localhost:11434/api/generate` (configurable)
+- **RAG layer:** optional 3-Layer Engineering Reasoning Engine at `RAG_SERVER_URL` (default `http://localhost:8902`)
+- **Context window:** 32 768 tokens
+- **Output cap:** 16 384 tokens per call (chunked pipeline handles overflow)
+- **No external API. No cloud. No fallback.**
 
 ---
 

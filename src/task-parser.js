@@ -189,17 +189,33 @@ export function parseUserTask(text) {
 
 export function detectOutputType(description) {
   const d = description.toLowerCase();
+  // Priority 1: explicit file extension in phrase ("a .py script")
+  const extMatch = d.match(/\.(html|jsx|py|js|json|csv|md|sql|css|yml|yaml)\b/);
+  if (extMatch) return extMatch[1] === 'yaml' ? 'yml' : extMatch[1];
+  // Priority 2: explicit named formats
   if (/landing.?page|html.?page|frontend|ui.?template/.test(d)) return 'html';
-  if (/react|component|jsx/.test(d)) return 'jsx';
-  if (/python|\.py|script.*(data|parse|csv)/.test(d)) return 'py';
-  if (/javascript|node\.?js|\.js|tool.*js/.test(d)) return 'js';
-  if (/json|data.?model|schema|config/.test(d)) return 'json';
+  if (/react component|jsx component/.test(d)) return 'jsx';
+  if (/\bpython\b/.test(d) && !/javascript|node/.test(d)) return 'py';
+  if (/\b(node\.?js|javascript)\b/.test(d)) return 'js';
+  if (/json schema|data.?model|config(?:uration)? file/.test(d)) return 'json';
   if (/csv|dataset|spreadsheet/.test(d)) return 'csv';
-  if (/markdown|readme|\.md|doc|resume|report/.test(d)) return 'md';
-  if (/sql|database|migration/.test(d)) return 'sql';
-  if (/css|stylesheet/.test(d)) return 'css';
-  if (/yaml|yml|docker/.test(d)) return 'yml';
+  if (/markdown|readme|resume|report doc/.test(d)) return 'md';
+  if (/\bsql\b|database migration/.test(d)) return 'sql';
+  if (/stylesheet|\bcss\b/.test(d)) return 'css';
+  if (/\byaml\b|\byml\b|docker.?compose/.test(d)) return 'yml';
   return 'md';
+}
+
+export function detectTaskShape(text) {
+  if (!text) return { shape: 'single-file', files: [] };
+  const t = sanitizeTelegram(text);
+  const hasChunkProtocol = /\/\/ \[CONTINUES\]|\/\/ \[COMPLETE\]/.test(t);
+  const fileRegex = /(?:^|\s|`)((?:\/|public\/|src\/|scripts\/|assets\/)[a-zA-Z0-9_\-./]+\.(?:html|jsx?|py|json|csv|md|sql|css|ya?ml|svg|txt))\b/gm;
+  const matches = [...t.matchAll(fileRegex)].map(m => m[1].replace(/^`/, ''));
+  const uniqueFiles = [...new Set(matches)];
+  if (hasChunkProtocol) return { shape: 'chunked', files: uniqueFiles };
+  if (uniqueFiles.length >= 2) return { shape: 'multi-file', files: uniqueFiles };
+  return { shape: 'single-file', files: uniqueFiles };
 }
 
 export function buildFilename(description, outputType) {
