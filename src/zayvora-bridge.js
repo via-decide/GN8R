@@ -83,8 +83,9 @@ async function callDirect(prompt, config) {
       prompt: prompt,
       stream: false,
       options: {
-        temperature: 0.1, // Technical precision
-        num_ctx: 32768,    // Expanded context for Beast-Mode synthesis
+        temperature: 0.1,
+        num_ctx: config.numCtx || 32768,
+        num_predict: config.numPredict || 16384,
         repeat_penalty: 1.1,
       },
     }),
