@@ -13,22 +13,29 @@ export class SynapseManager {
    * Fetch latest 15 commits to build context on what the bot can do.
    */
   async fetchSelfHistory() {
+    if (this.config.gitProvider === 'disabled') {
+      return '(commit history unavailable — git provider disabled)';
+    }
+
     const [owner, repo] = this.selfRepo.split('/');
-    const url = `${this.config.githubApiBaseUrl}/repos/${owner}/${repo}/commits?per_page=15`;
-    
+    const isGitea = this.config.gitProvider === 'gitea';
+    const apiBase = isGitea ? this.config.giteaApiBaseUrl : this.config.githubApiBaseUrl;
+    const token = isGitea ? this.config.giteaToken : this.config.githubToken;
+    const authHeader = isGitea ? `token ${token}` : `Bearer ${token}`;
+    const url = `${apiBase}/repos/${owner}/${repo}/commits?per_page=15`;
+
     try {
       const res = await fetch(url, {
         headers: {
-          'Accept': 'application/vnd.github+json',
-          'Authorization': `Bearer ${this.config.githubToken}`,
-          'X-GitHub-Api-Version': '2022-11-28',
+          'Accept': 'application/json',
+          'Authorization': authHeader,
         },
       });
       if (!res.ok) return `(Context Fetcher Error: ${res.status})`;
-      
+
       const commits = await res.json();
       const history = commits.map(c => `- ${c.commit.message.split('\n')[0]} (${c.commit.author.name})`).join('\n');
-      
+
       return `Bot's Own Recent Evolution (Latest 15 commits):\n${history}`;
     } catch (err) {
       return `(Context Fetcher Error: ${err.message})`;

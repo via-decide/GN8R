@@ -17,7 +17,7 @@ import { buildEngineContext } from './engine-bridge.js';
 import { detectOutputType, buildFilename, detectTaskShape } from './task-parser.js';
 import { buildCodexPrompt, buildRepairPrompt, buildPrPackage, buildExecutionPacket, buildUserFilePrompt } from './templates.js';
 import { writeArtifacts, writeUserArtifact } from './artifacts.js';
-import { inspectRepository, getBranchSha, createBranch, commitFile, createPullRequest, deleteBranch } from './github.js';
+import { inspectRepository, getBranchSha, createBranch, commitFile, createPullRequest, deleteBranch, GitProviderDisabledError } from './git.js';
 import { SynapseManager } from './synapse.js';
 
 export const STAGES = ['FLIGHT_PLAN', 'PLAN', 'AUDIT', 'GENERATE', 'ARTIFACTS', 'PUSH', 'PR', 'COMPLETE'];
@@ -357,8 +357,13 @@ export async function runGitHubPipeline({ taskId, chatId, repo, taskDescription,
         pushResult = 'pushed';
         await emit('PUSH', `Branch ${prPackage.branch} created with ${totalCommits} commits.`);
       } catch (pushErr) {
-        pushResult = `failed: ${pushErr.message}`;
-        await emit('PUSH', `⚠ Push failed: ${pushErr.message}`);
+        if (pushErr.code === 'GIT_PROVIDER_DISABLED') {
+          pushResult = 'skipped';
+          await emit('PUSH', `⏭ PUSH SKIPPED — git provider disabled. Files written to disk only.`);
+        } else {
+          pushResult = `failed: ${pushErr.message}`;
+          await emit('PUSH', `⚠ Push failed: ${pushErr.message}`);
+        }
       }
     }
 
