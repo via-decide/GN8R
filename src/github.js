@@ -161,3 +161,25 @@ export async function mergePullRequest(owner, repo, prNumber, config) {
     }),
   });
 }
+
+export async function getPrFiles(owner, repo, prNumber, config) {
+  const data = await githubRequest(
+    `/repos/${owner}/${repo}/pulls/${prNumber}/files?per_page=100`, config
+  );
+  return data.map(f => ({
+    filename: f.filename,
+    status: f.status,
+    additions: f.additions,
+    deletions: f.deletions,
+    changes: f.changes,
+    patch: f.patch || '',
+  }));
+}
+
+export async function postPrComment(owner, repo, prNumber, body, config) {
+  return githubRequest(`/repos/${owner}/${repo}/issues/${prNumber}/comments`, config, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ body }),
+  });
+}

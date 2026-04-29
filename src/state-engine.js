@@ -11,6 +11,9 @@ export const TaskStatus = {
   PENDING: 'pending', PLANNING: 'planning', AUDITING: 'auditing',
   GENERATING: 'generating', BUILDING: 'building', DONE: 'done',
   FAILED: 'failed', CANCELLED: 'cancelled', RUNNING: 'running',
+  VALIDATING: 'validating', VALIDATION_FAILED: 'validation_failed',
+  REVIEWING: 'reviewing', REVIEW_REJECTED: 'review_rejected',
+  MERGING: 'merging', MERGED: 'merged',
 };
 
 export class StateEngine {

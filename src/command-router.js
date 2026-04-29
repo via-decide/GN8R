@@ -584,6 +584,10 @@ export class CommandRouter {
     }
 
     if (action === 'merge') {
+      if (task.status === 'merged' || task.result?.mergeResult === 'auto-merged') {
+        await this.tg.sendMessage(chatId, `✓ PR #${task.result?.prNumber} already merged.`);
+        return;
+      }
       if (!task.result?.prNumber || !task.repo) {
         await this.tg.sendMessage(chatId, '❌ No PR available for this task.');
         return;

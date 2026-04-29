@@ -173,3 +173,26 @@ export async function mergePullRequest(owner, repo, prNumber, config) {
     }),
   });
 }
+
+export async function getPrFiles(owner, repo, prNumber, config) {
+  const data = await giteaRequest(
+    `/repos/${owner}/${repo}/pulls/${prNumber}/files?limit=100`, config
+  );
+  if (!Array.isArray(data)) return [];
+  return data.map(f => ({
+    filename: f.filename,
+    status: f.status,
+    additions: f.additions || 0,
+    deletions: f.deletions || 0,
+    changes: (f.additions || 0) + (f.deletions || 0),
+    patch: f.patch || '',
+  }));
+}
+
+export async function postPrComment(owner, repo, prNumber, body, config) {
+  return giteaRequest(`/repos/${owner}/${repo}/issues/${prNumber}/comments`, config, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ body }),
+  });
+}

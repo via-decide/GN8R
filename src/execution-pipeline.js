@@ -17,10 +17,12 @@ import { buildEngineContext } from './engine-bridge.js';
 import { detectOutputType, buildFilename, detectTaskShape } from './task-parser.js';
 import { buildCodexPrompt, buildRepairPrompt, buildPrPackage, buildExecutionPacket, buildUserFilePrompt } from './templates.js';
 import { writeArtifacts, writeUserArtifact } from './artifacts.js';
-import { inspectRepository, getBranchSha, createBranch, commitFile, createPullRequest, deleteBranch, GitProviderDisabledError } from './git.js';
+import { inspectRepository, getBranchSha, createBranch, commitFile, createPullRequest, deleteBranch, mergePullRequest, postPrComment, GitProviderDisabledError } from './git.js';
 import { SynapseManager } from './synapse.js';
+import { runValidation } from './validators.js';
+import { runAutoReview, formatReviewComment } from './reviewer.js';
 
-export const STAGES = ['FLIGHT_PLAN', 'PLAN', 'AUDIT', 'GENERATE', 'ARTIFACTS', 'PUSH', 'PR', 'COMPLETE'];
+export const STAGES = ['FLIGHT_PLAN', 'PLAN', 'AUDIT', 'GENERATE', 'VALIDATE', 'ARTIFACTS', 'PUSH', 'PR', 'REVIEW', 'MERGE', 'COMPLETE'];
 
 // ── Telegram File Downloader ──
 async function downloadTelegramFile(token, fileId) {
@@ -271,12 +273,9 @@ export async function runGitHubPipeline({ taskId, chatId, repo, taskDescription,
         .replace(/```\s*$/gm, '')
         .trim();
 
-      // ── VALIDATION GATE: Reject garbage before committing ──
+      // ── Fast pre-filter: reject obvious garbage before VALIDATE stage ──
       const lineCount = synthesizedContent.split('\n').length;
       const charCount = synthesizedContent.length;
-
-      // Only check the FIRST 5 lines for API/runtime error patterns — not the whole file
-      // (legitimate code will contain 'Error', 'raise', 'except' etc. throughout)
       const headerLines = synthesizedContent.split('\n').slice(0, 5).join('\n');
       const looksLikeApiError = /^Sympify|^Traceback|^SyntaxError|^<!DOCTYPE|^{"error"/m.test(headerLines);
       const isTooShort = lineCount < 10 || charCount < 200;
@@ -285,16 +284,41 @@ export async function runGitHubPipeline({ taskId, chatId, repo, taskDescription,
 
       if (looksLikeApiError || isTooShort) {
         const reason = looksLikeApiError ? 'Output starts with error patterns' : `Output too short (${lineCount} lines, ${charCount} chars)`;
-        await emit('GENERATE', `❌ BEAST-MODE VALIDATION FAILED: ${reason}. Aborting synthesis.`);
-        await emit('GENERATE', `Raw output preview: ${synthesizedContent.slice(0, 200)}`);
-        throw new Error(`Beast-Mode synthesis validation failed: ${reason}. Zayvora returned garbage instead of code.`);
+        await emit('GENERATE', `❌ Pre-filter failed: ${reason}. Aborting synthesis.`);
+        throw new Error(`Synthesis pre-filter failed: ${reason}. Zayvora returned garbage instead of code.`);
       }
 
-      await emit('GENERATE', `✅ Synthesized ${lineCount} lines (${(charCount / 1024).toFixed(1)} KB) for \`${createPath}\` — validation passed`);
+      await emit('GENERATE', `✅ Synthesized ${lineCount} lines (${(charCount / 1024).toFixed(1)} KB) for \`${createPath}\``);
 
       // Write synthesized file to local artifacts as well
-      const outputDir = path.join(config.artifactsDir, repo.replace('/', '__'));
-      await writeUserArtifact(outputDir, path.basename(createPath), synthesizedContent);
+      const outputDirEarly = path.join(config.artifactsDir, repo.replace('/', '__'));
+      await writeUserArtifact(outputDirEarly, path.basename(createPath), synthesizedContent);
+    }
+
+    // ── 3.5 VALIDATE: rule checks + (optional) sandbox test run ──
+    let validation = { passed: true, ruleFindings: [], testResult: { ran: false, passed: true, reason: 'no-synthesis' } };
+    if (hasSynthesis) {
+      await stateEngine.setTaskState(chatId, taskId, { status: TaskStatus.VALIDATING });
+      if (dryRun) {
+        await emit('VALIDATE', 'Dry-run: validation skipped.');
+      } else {
+        await emit('VALIDATE', '🔬 Rule checks + sandbox tests...');
+        validation = await runValidation({
+          filePath: synthesizedFilePath,
+          content: synthesizedContent,
+          repo,
+          config,
+          onProgress: (m) => emit('VALIDATE', m),
+        });
+        if (!validation.passed) {
+          const failDir = path.join(config.artifactsDir, repo.replace('/', '__'));
+          await writeUserArtifact(failDir, `${taskId}_validation.log`, JSON.stringify(validation, null, 2));
+          await stateEngine.setTaskState(chatId, taskId, { status: TaskStatus.VALIDATION_FAILED });
+          throw new Error(`Validate failed: ${validation.reason}`);
+        }
+        await emit('VALIDATE',
+          `✅ Rules ok | tests: ${validation.testResult.ran ? (validation.testResult.passed ? 'PASS' : 'FAIL') : (validation.testResult.reason || 'no-tests')}`);
+      }
     }
 
     await emit('GENERATE', 'Building orchestration package (Pro Engine)...');
@@ -369,24 +393,71 @@ export async function runGitHubPipeline({ taskId, chatId, repo, taskDescription,
 
     // PR
     let prUrl = null, pr = null;
+    let prBody = prPackage.body;
+    if (hasSynthesis && synthesizedContent) {
+      const lineCount = synthesizedContent.split('\n').length;
+      prBody += `\n\n## Synthesized Files\n- \`${createPath}\` — ${lineCount} lines, ${(synthesizedContent.length / 1024).toFixed(1)} KB\n- Generated by Zayvora Beast-Mode (Ollama, local)`;
+    }
     if (dryRun) { await emit('PR', 'Dry-run: PR creation skipped.'); }
     else if (!config.allowLivePr) { await emit('PR', 'Live PR disabled.'); }
     else if (pushResult !== 'pushed') { await emit('PR', `PR skipped — push: ${pushResult}`); }
     else {
       await emit('PR', 'Opening pull request...');
       try {
-        // Enrich PR body with synthesized file details
-        let prBody = prPackage.body;
-        if (hasSynthesis) {
-          const lineCount = synthesizedContent.split('\n').length;
-          prBody += `\n\n## Synthesized Files\n- \`${createPath}\` — ${lineCount} lines, ${(synthesizedContent.length / 1024).toFixed(1)} KB\n- Generated by Zayvora Beast-Mode (Ollama, local)`;
-        }
         pr = await createPullRequest(owner, repoName, prPackage.branch, repoAudit.defaultBranch, prPackage.title, prBody, config);
         prUrl = pr.url;
         await emit('PR', `PR opened: ${pr.url}`);
       } catch (prErr) {
         await emit('PR', `⚠ PR creation failed: ${prErr.message}`);
       }
+    }
+
+    // ── REVIEW: rule-based + Zayvora critic ──
+    let review = null;
+    if (pr && config.allowAutoReview && !dryRun) {
+      await stateEngine.setTaskState(chatId, taskId, { status: TaskStatus.REVIEWING });
+      await emit('REVIEW', '🔍 Auto-review (rules + Zayvora critic)...');
+      try {
+        review = await runAutoReview({
+          owner, repo: repoName, prNumber: pr.number,
+          prTitle: prPackage.title, prBody, config,
+          onProgress: (m) => emit('REVIEW', m),
+        });
+        try {
+          await postPrComment(owner, repoName, pr.number, formatReviewComment(review), config);
+        } catch (commentErr) {
+          await emit('REVIEW', `⚠ Could not post review comment: ${commentErr.message}`);
+        }
+        await emit('REVIEW', `Verdict: ${review.verdict} (${review.reasons.length} reasons${review.ruleBlocks.length ? `, ${review.ruleBlocks.length} rule blocks` : ''})`);
+        if (review.verdict === 'request_changes') {
+          await stateEngine.setTaskState(chatId, taskId, { status: TaskStatus.REVIEW_REJECTED });
+        }
+      } catch (revErr) {
+        await emit('REVIEW', `⚠ Review failed: ${revErr.message}`);
+        review = { verdict: 'request_changes', severity: 'high', reasons: [`review error: ${revErr.message}`], ruleBlocks: [] };
+      }
+    } else if (pr && !config.allowAutoReview) {
+      await emit('REVIEW', 'Auto-review disabled.');
+    } else if (!pr && !dryRun) {
+      await emit('REVIEW', 'Skipped — no PR to review.');
+    }
+
+    // ── MERGE: gated by validation + review verdict + allowAutoMerge ──
+    let mergeResult = 'manual';
+    if (pr && validation.passed && review?.verdict === 'approve' && config.allowAutoMerge && !dryRun) {
+      await stateEngine.setTaskState(chatId, taskId, { status: TaskStatus.MERGING });
+      try {
+        await mergePullRequest(owner, repoName, pr.number, config);
+        mergeResult = 'auto-merged';
+        await stateEngine.setTaskState(chatId, taskId, { status: TaskStatus.MERGED });
+        await emit('MERGE', `✅ PR #${pr.number} auto-merged`);
+      } catch (e) {
+        mergeResult = `failed: ${e.message}`;
+        await emit('MERGE', `⚠ Auto-merge failed: ${e.message}`);
+      }
+    } else if (pr) {
+      await emit('MERGE',
+        `Manual merge required (verdict=${review?.verdict ?? 'n/a'}, allowAutoMerge=${!!config.allowAutoMerge})`);
     }
 
     // metrics
@@ -399,18 +470,30 @@ export async function runGitHubPipeline({ taskId, chatId, repo, taskDescription,
     const completedAt = new Date().toISOString();
     await emit('COMPLETE', `Pipeline finished (Beast-Mode${hasSynthesis ? ' + Direct Synthesis' : ''}).`);
     await stateEngine.setTaskState(chatId, taskId, {
-      status: 'success',
-      result: { 
+      status: mergeResult === 'auto-merged' ? TaskStatus.MERGED : 'success',
+      result: {
         summary: hasSynthesis ? `Synthesized \`${createPath}\` and pushed to ${repo}` : 'Pipeline completed',
-        push: pushResult, 
-        prCreation: prUrl ? 'created' : 'skipped', 
-        prUrl: prUrl || null, 
+        push: pushResult,
+        prCreation: prUrl ? 'created' : 'skipped',
+        prUrl: prUrl || null,
         prNumber: pr?.number || null,
         artifactPaths,
         synthesizedFile: synthesizedFilePath || null,
-        prPackage: { branch: prPackage.branch, title: prPackage.title }, 
-        repoAudit: { defaultBranch: repoAudit.defaultBranch, language: repoAudit.language }, 
-        metrics 
+        prPackage: { branch: prPackage.branch, title: prPackage.title },
+        repoAudit: { defaultBranch: repoAudit.defaultBranch, language: repoAudit.language },
+        validation: {
+          passed: validation.passed,
+          ruleFindings: validation.ruleFindings,
+          testResult: validation.testResult,
+        },
+        review: review ? {
+          verdict: review.verdict,
+          severity: review.severity,
+          reasons: review.reasons,
+          ruleBlocks: review.ruleBlocks,
+        } : null,
+        mergeResult,
+        metrics
       },
       timestamps: { completedAt, updatedAt: completedAt },
     });

@@ -35,6 +35,7 @@ function pickProvider(config) {
 const WRITE_METHODS = [
   'getBranchSha', 'createBranch', 'deleteBranch',
   'commitFile', 'createPullRequest', 'mergePullRequest',
+  'getPrFiles', 'postPrComment',
 ];
 
 const writeMethods = {};
@@ -53,6 +54,7 @@ for (const m of WRITE_METHODS) {
 export const {
   getBranchSha, createBranch, deleteBranch,
   commitFile, createPullRequest, mergePullRequest,
+  getPrFiles, postPrComment,
 } = writeMethods;
 
 // ── Read operations — return graceful fallback when disabled ────
