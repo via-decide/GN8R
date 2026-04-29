@@ -39,6 +39,16 @@ export function loadConfig() {
     allowLivePush:    process.env.SIMBA_ALLOW_LIVE_PUSH === 'true',
     allowLivePr:      process.env.SIMBA_ALLOW_LIVE_PR === 'true',
 
+    // ── Validate / Auto-Review / Auto-Merge ──────────────────────
+    allowAutoMerge:         process.env.GN8R_ALLOW_AUTO_MERGE === 'true',          // default OFF
+    allowAutoReview:        process.env.GN8R_ALLOW_AUTO_REVIEW !== 'false',        // default ON
+    validateRunTests:       process.env.GN8R_VALIDATE_RUN_TESTS === 'true',        // default OFF (RCE risk)
+    validateMaxFileBytes:   Number(process.env.GN8R_VALIDATE_MAX_BYTES || 1048576),
+    validateCloneTimeoutMs: Number(process.env.GN8R_VALIDATE_CLONE_TIMEOUT_MS || 90000),
+    validateTestTimeoutMs:  Number(process.env.GN8R_VALIDATE_TEST_TIMEOUT_MS || 180000),
+    reviewMaxDiffLoc:       Number(process.env.GN8R_REVIEW_MAX_LOC || 1500),
+    reviewMaxFiles:         Number(process.env.GN8R_REVIEW_MAX_FILES || 25),
+
     // Security
     adminChatIds,
     enforceAdminOnly: process.env.SIMBA_ENFORCE_ADMIN_ONLY === 'true',

@@ -207,15 +207,22 @@ JSON ONLY. NO CHAT. NO EXPLANATION.`;
       return response;
     }
 
-    // GENERAL SYNTHESIS / INTENT PATH
+    // GENERAL SYNTHESIS / INTENT / CRITIC PATH
     console.log(`[Zayvora] ${modelType.toUpperCase()} Mode active — direct local synthesis`);
+
+    // Critic mode: small fast output, JSON-cleaned
+    if (modelType === 'critic') {
+      const response = await callDirect(prompt, { ...config, numPredict: 2048 });
+      return cleanJsonResponse(response);
+    }
+
     const response = await callDirect(prompt, config);
-    
+
     // If it's a JSON-only mode (intent), clean it before returning
     if (modelType === 'intent') {
       return cleanJsonResponse(response);
     }
-    
+
     return response;
 
   } catch (err) {
