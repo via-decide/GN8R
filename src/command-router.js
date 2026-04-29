@@ -13,7 +13,7 @@ import { parseTaskMessage, parseUserTask, sanitizeTelegram, truncateForTelegram 
 import { runUserPipeline, runGitHubPipeline, STAGES } from './execution-pipeline.js';
 import { TaskStatus } from './state-engine.js';
 import { formatFileCaption } from './file-exporter.js';
-import { listOwnerRepos, inspectRepository, listRepoBranches, deleteBranch, mergePullRequest } from './github.js';
+import { listOwnerRepos, inspectRepository, listRepoBranches, deleteBranch, mergePullRequest } from './git.js';
 import { generateTasks, generateNextTask, getCatalogSummary, formatTaskListForTelegram, formatTaskForTelegram, TOOL_CATALOG, discoverMissingTools, fetchAllRegisteredTools, formatRegistryReport, formatMissingToolsReport } from './task-generator.js';
 import { startLoop, stopLoop, getLoopStatus } from './task-loop.js';
 import { MemoryManager } from './memory.js';
@@ -505,7 +505,7 @@ export class CommandRouter {
         try {
           const tools = await fetchAllRegisteredTools(this.config);
           await this.tg.sendMessage(chatId, truncateForTelegram(formatRegistryReport(tools)));
-        } catch (err) { await this.tg.sendMessage(chatId, errMsg('Registry scan failed', err.message, true, 'Check GITHUB_TOKEN.')); }
+        } catch (err) { await this.tg.sendMessage(chatId, errMsg('Registry scan failed', err.message, true, 'Check GIT_PROVIDER and credentials (GITHUB_TOKEN or GITEA_TOKEN).')); }
         return;
       }
 
@@ -517,7 +517,7 @@ export class CommandRouter {
         try {
           const missing = await discoverMissingTools(catalogToCheck, this.config);
           await this.tg.sendMessage(chatId, truncateForTelegram(formatMissingToolsReport(missing)));
-        } catch (err) { await this.tg.sendMessage(chatId, errMsg('Gaps check failed', err.message, true, 'Check GITHUB_TOKEN.')); }
+        } catch (err) { await this.tg.sendMessage(chatId, errMsg('Gaps check failed', err.message, true, 'Check GIT_PROVIDER and credentials (GITHUB_TOKEN or GITEA_TOKEN).')); }
         return;
       }
 

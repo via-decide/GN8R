@@ -79,17 +79,20 @@ export async function fetchLiveManifest(engineBaseUrl) {
 }
 
 export async function fetchRegistryConfig(toolDir, config) {
+  if (config.gitProvider === 'disabled') {
+    throw new Error('Engine bridge cannot fetch repo files — git provider disabled. Set GIT_PROVIDER and credentials.');
+  }
   const [owner, repo] = ENGINE_TOOLS_REPO.split('/');
   const filePath = `${toolDir}/config.json`.replace(/^\//, '');
-  const url = `${config.githubApiBaseUrl}/repos/${owner}/${repo}/contents/${encodeURIComponent(filePath)}`;
+  const isGitea = config.gitProvider === 'gitea';
+  const url = isGitea
+    ? `${config.giteaApiBaseUrl}/repos/${owner}/${repo}/contents/${encodeURIComponent(filePath)}`
+    : `${config.githubApiBaseUrl}/repos/${owner}/${repo}/contents/${encodeURIComponent(filePath)}`;
+  const headers = isGitea
+    ? { Accept: 'application/json', Authorization: `token ${config.giteaToken}` }
+    : { Accept: 'application/vnd.github+json', Authorization: `Bearer ${config.githubToken}`, 'X-GitHub-Api-Version': '2022-11-28' };
   try {
-    const res = await fetch(url, {
-      headers: {
-        Accept: 'application/vnd.github+json',
-        Authorization: `Bearer ${config.githubToken}`,
-        'X-GitHub-Api-Version': '2022-11-28',
-      },
-    });
+    const res = await fetch(url, { headers });
     if (!res.ok) return null;
     const data = await res.json();
     if (data.encoding !== 'base64' || !data.content) return null;

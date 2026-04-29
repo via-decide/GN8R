@@ -16,11 +16,20 @@ export function loadConfig() {
     telegramToken:    process.env.TELEGRAM_BOT_TOKEN,
     pollIntervalMs:   Number(process.env.TELEGRAM_POLL_INTERVAL_MS || 3000),
 
-    // GitHub
-    githubToken:      process.env.GITHUB_TOKEN || '',
-    githubOwner:      process.env.GITHUB_OWNER || 'via-decide',
-    githubApiBaseUrl: process.env.GITHUB_API_BASE_URL || 'https://api.github.com',
+    // ── Git provider abstraction ─────────────────────────────────
+    gitProvider:        process.env.GIT_PROVIDER || 'disabled', // 'disabled' | 'github' | 'gitea'
+
+    // GitHub (deprecated, kept only for migration window)
+    githubToken:        process.env.GITHUB_TOKEN || '',
+    githubOwner:        process.env.GITHUB_OWNER || 'via-decide',
+    githubApiBaseUrl:   process.env.GITHUB_API_BASE_URL || 'https://api.github.com',
     githubRepoScanLimit: Number(process.env.GITHUB_REPO_SCAN_LIMIT || 30),
+
+    // Gitea (target — flip GIT_PROVIDER to 'gitea' to activate)
+    giteaToken:         process.env.GITEA_TOKEN || '',
+    giteaOwner:         process.env.GITEA_OWNER || 'dharam',
+    giteaApiBaseUrl:    process.env.GITEA_API_BASE_URL || 'https://git.daxini.xyz/api/v1',
+    giteaRepoScanLimit: Number(process.env.GITEA_REPO_SCAN_LIMIT || 30),
 
     // Decide Engine
     engineRepo:       process.env.DECIDE_ENGINE_REPO || 'via-decide/decide.engine-tools',

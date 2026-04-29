@@ -27,10 +27,21 @@ OLLAMA_URL=http://localhost:11434/api/generate
 OLLAMA_MODEL=Zayvora
 ```
 
-**To enable GitHub features:**
+**To enable GitHub features (legacy):**
 ```
+GIT_PROVIDER=github
 GITHUB_TOKEN=ghp_your_token
 GITHUB_OWNER=your_github_username
+SIMBA_ALLOW_LIVE_PUSH=true
+SIMBA_ALLOW_LIVE_PR=true
+```
+
+**To enable Gitea (recommended):**
+```
+GIT_PROVIDER=gitea
+GITEA_TOKEN=your_gitea_pat
+GITEA_OWNER=dharam
+GITEA_API_BASE_URL=https://git.daxini.xyz/api/v1
 SIMBA_ALLOW_LIVE_PUSH=true
 SIMBA_ALLOW_LIVE_PR=true
 ```
@@ -84,6 +95,25 @@ SIMBA_ALLOW_LIVE_PR=true
 | `/logs [n]` | Last n log entries |
 | `/cancel` | Cancel running task |
 | `/help` | This message |
+
+---
+
+## Git Provider Configuration
+
+Gn8r supports multiple git backends via the `GIT_PROVIDER` env var:
+
+| Value | Behaviour |
+|-------|-----------|
+| `disabled` (default) | Bot generates files to disk; PUSH/PR stages skip cleanly |
+| `gitea` | Self-hosted Gitea at `GITEA_API_BASE_URL` (recommended) |
+| `github` | Legacy GitHub — deprecated, kept for migration window |
+
+To activate Gitea:
+1. Set `GIT_PROVIDER=gitea`
+2. Set `GITEA_TOKEN`, `GITEA_OWNER`, `GITEA_API_BASE_URL`
+3. Restart bot
+
+Switching providers requires only env changes — no code edits.
 
 ---
 
