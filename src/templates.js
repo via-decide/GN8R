@@ -174,3 +174,38 @@ function suggestPrTitle(desc) {
   const t = (desc || 'Repo orchestration update').trim();
   return t.length > 72 ? t.slice(0, 69) + '...' : t;
 }
+
+
+const VOCAB = {
+  systems:['system boundary','feedback loop','tradeoff'], infra:['reliability','latency budget','failure mode'],
+  ai_learning:['experiments','error log','iteration'], debugging:['repro step','root cause','fix path']
+};
+const TONE = { raw:'I learned this the hard way', builder:'Built this by shipping small', minimal:'One clear note' };
+const BAD = [/in today['’]s world/ig,/revolutionary/ig,/game[- ]changer/ig,/#[^\s]+/g];
+
+export function buildPost(input) {
+  const words = VOCAB[input.theme] || VOCAB.systems, lead = TONE[input.tone] || TONE.builder;
+  const pts = (input.points || []).slice(0,3);
+  const core = `${lead}: ${pts.join('; ') || 'clarity before scale'}.`;
+  const story = `${pts[0] || 'Situation'} -> ${pts[1] || 'Realization'} -> ${pts[2] || 'Positioning'} (${words[0]}).`;
+  const map = {
+    short: [core, `${input.intent}: ${words[0]}.`].slice(0,2).join('\n'),
+    mid: [core, `Intent: ${input.intent}`, `Focus: ${words.slice(0,2).join(' + ')}`, `Rule: no hype, just signal.`].join('\n'),
+    story: story
+  };
+  let text = map[input.style] || map.short;
+  BAD.forEach(r => text = text.replace(r,''));
+  return { text: text.trim(), type: input.style };
+}
+
+export function generateContent(input) { return buildPost(input); }
+
+export function generateBatch(input) {
+  const mk = (style,n) => Array.from({length:n},(_,i)=>buildPost({...input,style,points:[...(input.points||[]),`angle ${i+1}`]}).text);
+  return { short: mk('short',10), mid: mk('mid',5), story: mk('story',3) };
+}
+
+export function exportPosts(batch, format='plain') {
+  if (format === 'markdown') return ['# Short',...batch.short.map(x=>`- ${x}`),'# Mid',...batch.mid.map(x=>`- ${x}`),'# Story',...batch.story.map(x=>`- ${x}`)].join('\n');
+  return ['SHORT',...batch.short,'MID',...batch.mid,'STORY',...batch.story].join('\n');
+}
