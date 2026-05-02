@@ -1,0 +1,17 @@
+{
+  "repo": "via-decide/gn8r",
+  "mode": "codex_then_antigravity",
+  "branch": "simba/implement-ui-file-pipeline-detection-engine-for-",
+  "files_to_create": [
+    "codex-task.md",
+    "antigravity-repair-task.md",
+    "pr-package.md",
+    "execution.json",
+    "1. gn8r/checks/file_pipeline_check.js 2. gn8r/integrations/ui_probe.js 3. extend gn8r/core/health.js"
+  ],
+  "files_to_modify": [],
+  "codex_prompt_path": "codex-task.md",
+  "repair_prompt_path": "antigravity-repair-task.md",
+  "synthesized_file": "1. gn8r/checks/file_pipeline_check.js 2. gn8r/integrations/ui_probe.js 3. extend gn8r/core/health.js",
+  "synthesized_size": 985
+}
